@@ -180,9 +180,10 @@ public class SpotifyRequester {
 
             @Override
             public void failure(RetrofitError error) {
+                Response response = error.getResponse();
                 Log.d(LOG_TAG, "requesting tracks for " + aArtistName + " failed with: " + error +
-                                " (reason=" + error.getResponse().getReason() +
-                                " (, url=" + error.getResponse().getUrl() + ")" );
+                                " (reason=" + (response != null ? response.getReason() : "unknown") +
+                                " (, url=" + (response != null ? response.getUrl() : "unknown url")  + ")" );
                 aCallback.onUpdate(Collections.<SpotifyItem.Track>emptyList());
             }
         });
