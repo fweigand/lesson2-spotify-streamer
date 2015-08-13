@@ -1,4 +1,4 @@
-package com.udacity.lesson.nano.lession1_spotifystreamer;
+package com.udacity.lesson.nano.streamapp;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,9 +15,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.udacity.lesson.nano.lession1_spotifystreamer.spotifydata.SpotifyCallback;
-import com.udacity.lesson.nano.lession1_spotifystreamer.spotifydata.SpotifyItem;
-import com.udacity.lesson.nano.lession1_spotifystreamer.spotifydata.SpotifyRequester;
+import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyCallback;
+import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
+import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyRequester;
 
 import java.util.ArrayList;
 import java.util.List;

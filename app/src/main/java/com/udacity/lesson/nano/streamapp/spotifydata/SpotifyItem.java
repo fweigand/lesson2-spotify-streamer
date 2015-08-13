@@ -1,4 +1,4 @@
-package com.udacity.lesson.nano.lession1_spotifystreamer.spotifydata;
+package com.udacity.lesson.nano.streamapp.spotifydata;
 
 import android.os.Parcel;
 import android.os.Parcelable;

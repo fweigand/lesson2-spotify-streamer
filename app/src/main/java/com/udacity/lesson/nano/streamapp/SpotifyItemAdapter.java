@@ -1,4 +1,4 @@
-package com.udacity.lesson.nano.lession1_spotifystreamer;
+package com.udacity.lesson.nano.streamapp;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.udacity.lesson.nano.lession1_spotifystreamer.spotifydata.SpotifyItem;
+import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
 
 import java.util.List;
 

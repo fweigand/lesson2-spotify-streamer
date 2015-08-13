@@ -1,4 +1,4 @@
-package com.udacity.lesson.nano.lession1_spotifystreamer;
+package com.udacity.lesson.nano.streamapp;
 
 import android.view.View;
 import android.widget.ImageView;
