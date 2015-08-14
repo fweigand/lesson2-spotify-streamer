@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Lession 1 - Spotify Streamer</string>
+    <string name="app_name">Lesson 2 - Spotify Streamer</string>
     <string name="no_artist_found_toast">No artist found that matches your search phrase</string>
     <string name="no_top_tracks_found_toast">No top tracks were found for this artist</string>
     <string name="top_tracks_for">Top 10 tracks for</string>
