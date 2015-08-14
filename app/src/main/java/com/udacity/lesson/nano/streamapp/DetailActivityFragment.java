@@ -44,7 +44,14 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
         mSpotifyAdapter = new SpotifyItemAdapter.Track(getActivity(), 0, trackList);
 
         if (trackList.isEmpty()) { // if we have nothing in the track list, lets request it from the server
+
+            // question do I really have to check this way where the first call is null if not started via an Intent
+            // "Two Pane Mode" ?
             String artistId = getActivity().getIntent().getStringExtra(MainActivityFragment.ARTIST_ID);
+            if( artistId == null ) {
+                artistId = getArguments().getString(MainActivityFragment.ARTIST_ID);
+            }
+
             SpotifyRequester.getInstance().queryTopTracks(artistId, this);
         }
 

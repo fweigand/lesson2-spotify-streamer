@@ -55,9 +55,26 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
                 if (enterSearchPhrase.equals(flavor.name)) {
                     return;
                 }
-                Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra(ARTIST_ID, flavor.id).putExtra(ARTIST_NAME, flavor.name);
-                startActivity(intent);
+
+                if (getActivity().findViewById(R.id.artist_detail_container) != null) {
+                    // In two-pane mode, show the detail view in this activity by
+                    // adding or replacing the detail fragment using a
+                    // fragment transaction.
+                    Bundle arguments = new Bundle();
+                    arguments.putString(ARTIST_ID, flavor.id);
+                    arguments.putString(ARTIST_NAME, flavor.name);
+
+                    DetailActivityFragment fragment = new DetailActivityFragment();
+                    fragment.setArguments(arguments);
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.artist_detail_container, fragment).commit();
+
+                } else {
+                    Intent intent = new Intent(getActivity(), DetailActivity.class)
+                            .putExtra(ARTIST_ID, flavor.id).putExtra(ARTIST_NAME, flavor.name);
+                    startActivity(intent);
+                }
+
             }
         });
 
