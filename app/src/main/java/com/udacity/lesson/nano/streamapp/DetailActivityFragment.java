@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.text.AutoText;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyCallback;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
+import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyRequester;
 
 import java.io.IOException;
@@ -30,15 +32,13 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
 
     private ListView mListView;
 
-    final static String TOP_TRACKS = "top.tracks";
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         final List<SpotifyItem.Track> trackList = new ArrayList<>();
 
         if (savedInstanceState != null) {
-            ArrayList<SpotifyItem.Track> items = savedInstanceState.getParcelableArrayList(TOP_TRACKS);
+            ArrayList<SpotifyItem.Track> items = savedInstanceState.getParcelableArrayList(SpotifyItemKeys.TOP_TRACKS);
             if (items != null || !items.isEmpty()) {
                 Log.d(LOG_TAG, "restoring " + track(items) + " from local cache");
                 trackList.addAll(items);
@@ -47,17 +47,9 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
 
         mSpotifyAdapter = new SpotifyItemAdapter.Track(getActivity(), 0, trackList);
 
+        final String artistId = getContextData(SpotifyItemKeys.ARTIST_ID);
+
         if (trackList.isEmpty()) { // if we have nothing in the track list, lets request it from the server
-
-            // Do I really have to check this way to differentiate between single and two pane mode?
-
-            // first call: started via intent gives us the artistId
-            String artistId = getActivity().getIntent().getStringExtra(MainActivityFragment.ARTIST_ID);
-            if (artistId == null) {
-                // second call: fragment was launched directly
-                artistId = getArguments().getString(MainActivityFragment.ARTIST_ID);
-            }
-
             SpotifyRequester.getInstance().queryTopTracks(artistId, this);
         }
 
@@ -75,8 +67,11 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
                 for (int i = 0; i < mSpotifyAdapter.getCount(); i++) {
                     items.add(mSpotifyAdapter.getItem(i));
                 }
-                intent.putParcelableArrayListExtra(TOP_TRACKS, items);
-                intent.putExtra(PlayerActivityFragment.TRACK_NUMBER, position);
+                intent.putParcelableArrayListExtra(SpotifyItemKeys.TOP_TRACKS, items);
+                intent.putExtra(SpotifyItemKeys.TRACK_NUMBER, position);
+                final String artistName = getContextData( SpotifyItemKeys.ARTIST_NAME );
+                intent.putExtra(SpotifyItemKeys.ARTIST_NAME, artistName);
+
                 startActivity(intent);
             }
         });
@@ -101,7 +96,7 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
             for (int i = 0; i < mSpotifyAdapter.getCount(); i++) {
                 items.add(mSpotifyAdapter.getItem(i));
             }
-            outState.putParcelableArrayList(TOP_TRACKS, items);
+            outState.putParcelableArrayList(SpotifyItemKeys.TOP_TRACKS, items);
             Log.d(LOG_TAG, "saving " + track(items) + " to local cache");
         }
     }
@@ -125,5 +120,18 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
         mSpotifyAdapter.clear();
         mSpotifyAdapter.addAll(aItems);
         mSpotifyAdapter.notifyDataSetChanged(); // notify only once
+    }
+
+
+    // Do I really have to check this way to differentiate between single and two pane mode?
+    // This seems like a disparity to me.
+    private String getContextData( String aKey ) {
+        // first call: started via intent gives us the artistId/artistName or whatever we passed in
+        String value = getActivity().getIntent().getStringExtra(aKey);
+        if (value == null) {
+            // second call: fragment was launched directly
+            value = getArguments().getString(aKey);
+        }
+        return value;
     }
 }

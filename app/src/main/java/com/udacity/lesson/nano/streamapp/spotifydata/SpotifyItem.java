@@ -36,12 +36,17 @@ public class SpotifyItem {
     public static class Track extends SpotifyItem implements Parcelable {
 
         public final String albumName;
-        public final String url;
+        public final String trackUrl;
+        public final String largeImageUrl;
+        public final long durationMs;
 
-        public Track(String aName, String aImageUrl, int aPopularity, String aAlbumName, String aUrl) {
+        public Track(String aName, String aImageUrl, int aPopularity, String aAlbumName,
+                     String aTrackUrl, String aLargeImageUrl, long aDurationMs) {
             super(aName, aImageUrl, aPopularity);
             albumName = aAlbumName;
-            url = aUrl;
+            trackUrl = aTrackUrl;
+            largeImageUrl = aLargeImageUrl;
+            durationMs = aDurationMs;
         }
 
         @Override
@@ -55,9 +60,12 @@ public class SpotifyItem {
             dest.writeString(imageUrl);
             dest.writeString(name);
             dest.writeString(albumName);
-            dest.writeString(url);
+            dest.writeString(trackUrl);
+            dest.writeString(largeImageUrl);
+            dest.writeLong(durationMs);
         }
 
+        // used when passed around as Intent data
         public static final Parcelable.Creator<Track> CREATOR = new Parcelable.Creator<Track>() {
             @Override
             public Track createFromParcel(Parcel in) {
@@ -65,8 +73,11 @@ public class SpotifyItem {
                 String imageUrl = in.readString();
                 String name = in.readString();
                 String albumName = in.readString();
-                String url = in.readString();
-                return new Track(name, imageUrl, popularity, albumName, url);
+                String trackUrl = in.readString();
+                String largeImageUrl = in.readString();
+                long durationMs = in.readLong();
+                return new Track(name, imageUrl, popularity, albumName, trackUrl, largeImageUrl,
+                                 durationMs);
             }
 
             @Override
@@ -74,10 +85,5 @@ public class SpotifyItem {
                 return new Track[size];
             }
         };
-
-        private void readFromParcel(Parcel src) {
-            int popularity = src.readInt();
-            Log.i("parcel", "pop=" + popularity);
-        }
     }
 }

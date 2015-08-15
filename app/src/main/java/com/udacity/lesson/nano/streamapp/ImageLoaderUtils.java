@@ -34,5 +34,14 @@ public class ImageLoaderUtils {
         }
     }
 
+    public static void showLargeImageView(View aView, int aViewId, String aUrl) {
+        ImageView imageView = (ImageView) aView.findViewById(aViewId);
+        if (aUrl != null) {
+            Picasso.with(aView.getContext()).load(aUrl).resize(300,300).centerInside().into(imageView);
+        } else {
+            imageView.setImageResource(DEFAULT_THUMBNAIL_ID);
+        }
+    }
+
     private ImageLoaderUtils() {} // cannot instantiate - static method helper class
 }

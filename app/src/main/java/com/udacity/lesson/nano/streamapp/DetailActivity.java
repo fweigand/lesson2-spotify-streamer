@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
+
 public class DetailActivity extends ActionBarActivity {
 
     @Override
@@ -13,7 +15,7 @@ public class DetailActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
         final String prefix = getString(R.string.top_tracks_for);
-        setTitle(prefix + " " + getIntent().getStringExtra(MainActivityFragment.ARTIST_NAME));
+        setTitle(prefix + " " + getIntent().getStringExtra(SpotifyItemKeys.ARTIST_NAME));
     }
 
     @Override

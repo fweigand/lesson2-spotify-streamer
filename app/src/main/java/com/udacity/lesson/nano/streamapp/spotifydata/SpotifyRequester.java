@@ -153,8 +153,16 @@ public class SpotifyRequester {
                 if( aOverThisImage.width == 200 && aOverThisImage.height == 200 ) {
                     return false; // the other image wins if a 200x200 was already found
                 }
-                // otherwise use keep the smaller one
+                // otherwise keep the smaller one
                 return aImage.width * aImage.height < aOverThisImage.width * aOverThisImage.height;
+            }
+        };
+
+        final ImageMatcher largeMatcher = new ImageMatcher() {
+            @Override
+            public boolean preferImage(Image aImage, Image aOverThisImage) {
+                // find the largest
+                return aImage.width * aImage.height > aOverThisImage.width * aOverThisImage.height;
             }
         };
 
@@ -167,11 +175,13 @@ public class SpotifyRequester {
 
                 for (Track track : tracks.tracks) {
                     AlbumSimple album = track.album;
+                    long duration = track.duration_ms;
                     String url = track.preview_url;
                     list.add( new SpotifyItem.Track(track.name,
                                       findBestImage(album.images, matcher),
-                                                    track.popularity,
-                                                    album.name, url));
+                                      track.popularity, album.name, url,
+                                      findBestImage(album.images, largeMatcher),
+                                      duration));
                 }
 
                 Collections.sort(list, popularityItemComparator);
@@ -184,7 +194,7 @@ public class SpotifyRequester {
                 Response response = error.getResponse();
                 Log.d(LOG_TAG, "requesting tracks for " + aArtistName + " failed with: " + error +
                                 " (reason=" + (response != null ? response.getReason() : "unknown") +
-                                " (, url=" + (response != null ? response.getUrl() : "unknown url")  + ")" );
+                                " (, url=" + (response != null ? response.getUrl() : "unknown trackUrl")  + ")" );
                 aCallback.onUpdate(Collections.<SpotifyItem.Track>emptyList());
             }
         });
