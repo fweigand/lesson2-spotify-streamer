@@ -38,10 +38,10 @@ public class SpotifyItem {
         public final String albumName;
         public final String trackUrl;
         public final String largeImageUrl;
-        public final long durationMs;
+        public final int durationMs;
 
         public Track(String aName, String aImageUrl, int aPopularity, String aAlbumName,
-                     String aTrackUrl, String aLargeImageUrl, long aDurationMs) {
+                     String aTrackUrl, String aLargeImageUrl, int aDurationMs) {
             super(aName, aImageUrl, aPopularity);
             albumName = aAlbumName;
             trackUrl = aTrackUrl;
@@ -62,7 +62,7 @@ public class SpotifyItem {
             dest.writeString(albumName);
             dest.writeString(trackUrl);
             dest.writeString(largeImageUrl);
-            dest.writeLong(durationMs);
+            dest.writeInt(durationMs);
         }
 
         // used when passed around as Intent data
@@ -75,7 +75,7 @@ public class SpotifyItem {
                 String albumName = in.readString();
                 String trackUrl = in.readString();
                 String largeImageUrl = in.readString();
-                long durationMs = in.readLong();
+                int durationMs = in.readInt();
                 return new Track(name, imageUrl, popularity, albumName, trackUrl, largeImageUrl,
                                  durationMs);
             }

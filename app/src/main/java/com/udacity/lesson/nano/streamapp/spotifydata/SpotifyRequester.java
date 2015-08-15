@@ -175,7 +175,7 @@ public class SpotifyRequester {
 
                 for (Track track : tracks.tracks) {
                     AlbumSimple album = track.album;
-                    long duration = track.duration_ms;
+                    int duration = (int)track.duration_ms;
                     String url = track.preview_url;
                     list.add( new SpotifyItem.Track(track.name,
                                       findBestImage(album.images, matcher),
