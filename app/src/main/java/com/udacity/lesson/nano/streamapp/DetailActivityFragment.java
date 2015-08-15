@@ -1,5 +1,6 @@
 package com.udacity.lesson.nano.streamapp;
 
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -29,7 +30,7 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
 
     private ListView mListView;
 
-    private final static String TOP_TRACKS = "top.tracks";
+    final static String TOP_TRACKS = "top.tracks";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -68,20 +69,15 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                SpotifyItem.Track track =  trackList.get(position);
-                String url = track.url;
-                MediaPlayer mediaPlayer = new MediaPlayer();
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                try {
-                    mediaPlayer.setDataSource(url);
-                    mediaPlayer.prepare(); // might take long! (for buffering, etc)
-                } catch (IOException e) {
-                    e.printStackTrace();
+                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+
+                ArrayList<Parcelable> items = new ArrayList<>();
+                for (int i = 0; i < mSpotifyAdapter.getCount(); i++) {
+                    items.add(mSpotifyAdapter.getItem(i));
                 }
-                mediaPlayer.start();
-
-                //
-
+                intent.putParcelableArrayListExtra(TOP_TRACKS, items);
+                intent.putExtra(PlayerActivityFragment.TRACK_NUMBER, position);
+                startActivity(intent);
             }
         });
 
