@@ -37,7 +37,7 @@ public class ImageLoaderUtils {
     public static void showLargeImageView(View aView, int aViewId, String aUrl) {
         ImageView imageView = (ImageView) aView.findViewById(aViewId);
         if (aUrl != null) {
-            Picasso.with(aView.getContext()).load(aUrl).resize(100, 100).into(imageView);
+            Picasso.with(aView.getContext()).load(aUrl).resize(300, 300).into(imageView);
         } else {
             imageView.setImageResource(DEFAULT_THUMBNAIL_ID);
         }

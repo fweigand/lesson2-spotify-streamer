@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
+
 
 public class PlayerActivity extends ActionBarActivity {
 
@@ -12,8 +14,9 @@ public class PlayerActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
+        final String prefix = getString(R.string.now_playing);
+        setTitle(prefix + " " + getIntent().getStringExtra(SpotifyItemKeys.ARTIST_NAME));
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

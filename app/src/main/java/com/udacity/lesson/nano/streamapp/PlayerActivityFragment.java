@@ -120,18 +120,24 @@ public class PlayerActivityFragment extends Fragment {
                     ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
                     playButton.setImageResource(android.R.drawable.ic_media_pause);
 
-
-
                     // this requires some more tweaking:
+                    // 1. do not call after the playback has finished
+                    // 2. updates must be performed more smoothly
+                    // 3. position may be slightly larger than the maximum
+
                     progressUpdater = new Timer();
                     progressUpdater.scheduleAtFixedRate(new TimerTask() {
                         @Override
                         public void run() {
-                            rootView.post( new Runnable() {
+                            rootView.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    int positionMs = mp.getCurrentPosition();
-                                    if( !isScrubbing ) {
+                                    int positionMs2 = mp.getCurrentPosition();
+                                    int positionMs = mediaPlayer.getCurrentPosition();
+
+                                    if (!isScrubbing) {
+
+                                        Log.w("position", "pos=" + positionMs + " pos2=" + positionMs2 );
                                         SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
                                         seekBar.setProgress(positionMs);
                                     }
@@ -139,7 +145,7 @@ public class PlayerActivityFragment extends Fragment {
                                     TextView trackPosition = (TextView) rootView.findViewById(R.id.player_track_position);
                                     trackPosition.setText(millisToFormattedString(positionMs));
                                 }
-                            } );
+                            });
                         }
                     }, 100, 400); // a little less than a second to get smooth updates
                 }
@@ -151,6 +157,16 @@ public class PlayerActivityFragment extends Fragment {
                     final ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
                     playButton.setImageResource(android.R.drawable.ic_media_pause);
                     mp.start();
+                    Log.w("seek complete", "pos=" + mp.getCurrentPosition());
+
+                }
+            });
+
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    Log.w("playback complete", "pos=" + mp.getCurrentPosition());
+                    // TODO implement this
                 }
             });
 
@@ -201,7 +217,8 @@ public class PlayerActivityFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (lastProgress != -1) {
-                    mediaPlayer.seekTo(lastProgress);
+                    mediaPlayer.seekTo(lastProgress - 1);
+                    Log.w("touch complete", "pos=" +lastProgress);
                 }
                 isScrubbing = false;
             }
