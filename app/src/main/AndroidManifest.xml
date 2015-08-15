@@ -10,18 +10,19 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
-        <!-- android:launchMode="singleTop" found at:
+        <!--
+             android:launchMode="singleTop" found at:
              http://developer.android.com/guide/topics/manifest/activity-element.html#lmode
              we want to have a single instance of artist search results and keep it across multiple
              navigations to the DetailActivity and back. no need to make the same Spotify Request multiple times
 
              and stackoverflow has also a very good post about this:
              http://stackoverflow.com/questions/14462456/returning-from-an-activity-using-navigateupfromsametask
-         -->
+        -->
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleTop"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -35,6 +36,10 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.udacity.lesson.nano.streamapp.MainActivity" />
+        </activity>
+        <activity
+            android:name=".PlayerActivity"
+            android:label="@string/title_activity_player" >
         </activity>
     </application>
 
