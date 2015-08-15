@@ -35,10 +35,12 @@ public  class SpotifyItem {
     public static class Track extends SpotifyItem implements Parcelable {
 
         public final String albumName;
+        public final String url;
 
-        public Track(String aName, String aImageUrl, int aPopularity, String aAlbumName) {
+        public Track(String aName, String aImageUrl, int aPopularity, String aAlbumName, String aUrl) {
             super( aName, aImageUrl, aPopularity );
             albumName = aAlbumName;
+            url = aUrl;
         }
 
         @Override public int describeContents() { return 0; }
@@ -49,6 +51,7 @@ public  class SpotifyItem {
             dest.writeString(imageUrl);
             dest.writeString(name);
             dest.writeString(albumName);
+            dest.writeString(url);
         }
     }
 }

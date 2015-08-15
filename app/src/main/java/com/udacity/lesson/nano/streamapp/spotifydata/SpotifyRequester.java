@@ -167,10 +167,11 @@ public class SpotifyRequester {
 
                 for (Track track : tracks.tracks) {
                     AlbumSimple album = track.album;
+                    String url = track.preview_url;
                     list.add( new SpotifyItem.Track(track.name,
                                       findBestImage(album.images, matcher),
                                                     track.popularity,
-                                                    album.name));
+                                                    album.name, url));
                 }
 
                 Collections.sort(list, popularityItemComparator);
