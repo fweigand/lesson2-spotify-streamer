@@ -27,19 +27,15 @@ import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-
-/**
- * A placeholder fragment containing a simple view.
- */
 public class PlayerActivityFragment extends Fragment {
 
     private MediaPlayer mediaPlayer;
     private Timer progressUpdater;
 
+    private volatile boolean isScrubbing; // true while the user has grabbed the seekbar
     private int trackIndex;
 
-    public PlayerActivityFragment() {
-    }
+    public PlayerActivityFragment() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -89,11 +85,16 @@ public class PlayerActivityFragment extends Fragment {
             }
         });
 
-
         return rootView;
     }
 
     private void stop() {
+        if( progressUpdater != null ) {
+            progressUpdater.cancel();
+            progressUpdater.purge();
+            progressUpdater = null;
+        }
+
         if (mediaPlayer != null) {
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
@@ -119,11 +120,9 @@ public class PlayerActivityFragment extends Fragment {
                     ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
                     playButton.setImageResource(android.R.drawable.ic_media_pause);
 
-                    if( progressUpdater != null ) {
-                        progressUpdater.cancel();
-                        progressUpdater.purge();
-                    }
 
+
+                    // this requires some more tweaking:
                     progressUpdater = new Timer();
                     progressUpdater.scheduleAtFixedRate(new TimerTask() {
                         @Override
@@ -132,20 +131,25 @@ public class PlayerActivityFragment extends Fragment {
                                 @Override
                                 public void run() {
                                     int positionMs = mp.getCurrentPosition();
-                                    SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
-                                    seekBar.setProgress(positionMs);
+                                    if( !isScrubbing ) {
+                                        SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
+                                        seekBar.setProgress(positionMs);
+                                    }
+
                                     TextView trackPosition = (TextView) rootView.findViewById(R.id.player_track_position);
                                     trackPosition.setText(millisToFormattedString(positionMs));
                                 }
                             } );
                         }
-                    }, 100, 800); // a little less than a second to get smooth updates
+                    }, 100, 400); // a little less than a second to get smooth updates
                 }
             });
 
             mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                 @Override
                 public void onSeekComplete(MediaPlayer mp) {
+                    final ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
+                    playButton.setImageResource(android.R.drawable.ic_media_pause);
                     mp.start();
                 }
             });
@@ -163,11 +167,20 @@ public class PlayerActivityFragment extends Fragment {
         TextView albumNameTextView = (TextView) rootView.findViewById(R.id.player_album_name);
         albumNameTextView.setText(track.albumName);
 
-        SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
+        final SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
         seekBar.setMax(track.durationMs);
 
         TextView trackLengthTextView = (TextView) rootView.findViewById(R.id.player_track_length);
         trackLengthTextView.setText(millisToFormattedString(track.durationMs));
+
+        // not working as intended
+        mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+            @Override
+            public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                int progress = (int)(track.durationMs * percent / 100.0d);
+                seekBar.setSecondaryProgress( progress );
+            }
+        });
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int lastProgress = -1;
@@ -182,6 +195,7 @@ public class PlayerActivityFragment extends Fragment {
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 lastProgress = -1;
+                isScrubbing = true;
             }
 
             @Override
@@ -189,6 +203,7 @@ public class PlayerActivityFragment extends Fragment {
                 if (lastProgress != -1) {
                     mediaPlayer.seekTo(lastProgress);
                 }
+                isScrubbing = false;
             }
         });
 
