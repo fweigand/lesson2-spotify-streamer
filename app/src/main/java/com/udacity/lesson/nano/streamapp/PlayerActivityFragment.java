@@ -1,9 +1,13 @@
 package com.udacity.lesson.nano.streamapp;
 
 import android.app.DialogFragment;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +19,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.udacity.lesson.nano.streamapp.service.PlayerService;
+import com.udacity.lesson.nano.streamapp.service.PlayerServiceListener;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
 
@@ -26,14 +32,15 @@ import java.util.TimerTask;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-public class PlayerActivityFragment extends DialogFragment {
+public class PlayerActivityFragment extends DialogFragment implements PlayerServiceListener {
 
-    private MediaPlayer mediaPlayer;
-    private Timer progressUpdater;
     private View rootView;
 
     private volatile boolean isScrubbing; // true while the user has grabbed the seekbar
+
     private int trackIndex;
+
+    private PlayerService service;
 
     public PlayerActivityFragment() {}
 
@@ -46,7 +53,21 @@ public class PlayerActivityFragment extends DialogFragment {
         final ArrayList<SpotifyItem.Track> trackList = intent.getParcelableArrayListExtra(SpotifyItemKeys.TOP_TRACKS);
         trackIndex = intent.getIntExtra(SpotifyItemKeys.TRACK_NUMBER, 0);
         rootView = inflater.inflate(R.layout.fragment_player, container, false);
-        play(trackList.get( trackIndex ));
+
+        Intent serviceIntent = new Intent(getActivity(), PlayerService.class);
+         getActivity().bindService(serviceIntent, new ServiceConnection() {
+             @Override
+             public void onServiceConnected(ComponentName name, IBinder binder) {
+                 PlayerService.PlayerServiceBinder pbinder = (PlayerService.PlayerServiceBinder) binder;
+                 service = pbinder.getService();
+                 service.setListener(PlayerActivityFragment.this);
+                 service.play(trackList.get(trackIndex));
+             }
+
+             @Override
+             public void onServiceDisconnected(ComponentName name) {
+             }
+        }, Context.BIND_AUTO_CREATE);
 
         String artistName = intent.getStringExtra(SpotifyItemKeys.ARTIST_NAME);
         TextView artistNameTextView = (TextView) rootView.findViewById(R.id.player_artist_name);
@@ -58,7 +79,7 @@ public class PlayerActivityFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 trackIndex = ++trackIndex % trackListSize;
-                play(trackList.get( trackIndex ));
+                service.play(trackList.get(trackIndex));
             }
         });
 
@@ -67,7 +88,7 @@ public class PlayerActivityFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 trackIndex = trackIndex == 0 ? trackListSize - 1 : --trackIndex % trackListSize;
-                play(trackList.get( trackIndex ));
+                service.play(trackList.get(trackIndex));
             }
         });
 
@@ -75,102 +96,11 @@ public class PlayerActivityFragment extends DialogFragment {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mediaPlayer.isPlaying()) {
-                    playButton.setImageResource(android.R.drawable.ic_media_play);
-                    mediaPlayer.pause();
-                } else {
-                    playButton.setImageResource(android.R.drawable.ic_media_pause);
-                    mediaPlayer.start();
-                }
+                service.togglePlay();
             }
         });
 
-        return rootView;
-    }
-
-    private void stop() {
-        if( progressUpdater != null ) {
-            progressUpdater.cancel();
-            progressUpdater.purge();
-            progressUpdater = null;
-        }
-
-        if (mediaPlayer != null) {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
-            }
-            mediaPlayer.reset();
-        }
-    }
-
-    private void play(SpotifyItem.Track track) {
-        stop();
-        String url = track.trackUrl;
-
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        try {
-            mediaPlayer.setDataSource(url);
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(final MediaPlayer mp) {
-                    mp.start();
-                    ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
-                    playButton.setImageResource(android.R.drawable.ic_media_pause);
-
-                    SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
-                    seekBar.setMax(mp.getDuration());
-
-                    progressUpdater = new Timer();
-                    progressUpdater.scheduleAtFixedRate(new TimerTask() {
-                        @Override
-                        public void run() {
-                            rootView.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    int positionMs = mediaPlayer.getCurrentPosition();
-                                    if (!isScrubbing) {
-                                        SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
-                                        seekBar.setProgress(positionMs);
-                                    }
-                                    TextView trackPosition = (TextView) rootView.findViewById(R.id.player_track_position);
-                                    trackPosition.setText(millisToFormattedString(positionMs));
-                                }
-                            });
-                        }
-                    }, 70, 70);
-                }
-            });
-
-            mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
-                @Override
-                public void onSeekComplete(MediaPlayer mp) {
-                    final ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
-                    playButton.setImageResource(android.R.drawable.ic_media_pause);
-                    mp.start();
-                    Log.w("seek complete", "pos=" + mp.getCurrentPosition() + " length=" +  mp.getDuration() );
-
-                }
-            });
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            Log.e("mediaplayer", "failed to setup the media player: " + e.getMessage());
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
-
-        TextView trackNameTextView = (TextView) rootView.findViewById(R.id.player_track_name);
-        trackNameTextView.setText(track.name);
-
-        TextView albumNameTextView = (TextView) rootView.findViewById(R.id.player_album_name);
-        albumNameTextView.setText(track.albumName);
-
         final SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
-        seekBar.setMax(track.durationMs);
-
-        TextView trackLengthTextView = (TextView) rootView.findViewById(R.id.player_track_length);
-        trackLengthTextView.setText(millisToFormattedString(track.durationMs));
-
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int lastProgress = -1;
 
@@ -190,18 +120,65 @@ public class PlayerActivityFragment extends DialogFragment {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (lastProgress != -1) {
-                    mediaPlayer.seekTo(lastProgress - 1);
-                    Log.w("touch complete", "pos=" +lastProgress);
+                    service.seekTo( lastProgress );
+                    Log.w("touch complete", "pos=" + lastProgress);
                 }
                 isScrubbing = false;
             }
         });
-
-        ImageLoaderUtils.showLargeImageView(rootView, R.id.player_album_artwork, track.largeImageUrl);
+        return rootView;
     }
 
     private String millisToFormattedString( int aMillis ) {
         return String.format("%02d:%02d", MILLISECONDS.toMinutes(aMillis),
                 MILLISECONDS.toSeconds(aMillis) - MINUTES.toSeconds(MILLISECONDS.toMinutes(aMillis)));
+    }
+
+    @Override
+    public void onStarted(SpotifyItem.Track track, int aDurationMs) {
+        TextView trackNameTextView = (TextView) rootView.findViewById(R.id.player_track_name);
+        trackNameTextView.setText(track.name);
+
+        TextView albumNameTextView = (TextView) rootView.findViewById(R.id.player_album_name);
+        albumNameTextView.setText(track.albumName);
+
+        final SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
+        seekBar.setMax(aDurationMs);
+//        seekBar.setMax(track.durationMs);
+
+        TextView trackLengthTextView = (TextView) rootView.findViewById(R.id.player_track_length);
+        trackLengthTextView.setText(millisToFormattedString(track.durationMs));
+
+        ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
+        playButton.setImageResource(android.R.drawable.ic_media_pause);
+
+        ImageLoaderUtils.showLargeImageView(rootView, R.id.player_album_artwork, track.largeImageUrl);
+    }
+
+    @Override
+    public void onPaused() {
+        ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
+        playButton.setImageResource(android.R.drawable.ic_media_play);
+    }
+
+    @Override
+    public void onResumed() {
+        ImageButton playButton = (ImageButton) rootView.findViewById(R.id.player_play);
+        playButton.setImageResource(android.R.drawable.ic_media_pause);
+    }
+
+    @Override
+    public void onProgress(int aProgress) {
+        if (!isScrubbing) {
+            SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.player_seek_bar);
+            seekBar.setProgress(aProgress);
+        }
+        TextView trackPosition = (TextView) rootView.findViewById(R.id.player_track_position);
+        trackPosition.setText(millisToFormattedString(aProgress));
+    }
+
+    @Override
+    public void onFinished() {
+
     }
 }

@@ -41,6 +41,7 @@
             android:name=".PlayerActivity"
             android:label="@string/title_activity_player" >
         </activity>
+        <service android:name="com.udacity.lesson.nano.streamapp.service.PlayerService" />
     </application>
 
 </manifest>
