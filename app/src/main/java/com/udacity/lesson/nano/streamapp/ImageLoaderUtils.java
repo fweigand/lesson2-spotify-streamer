@@ -34,12 +34,11 @@ public class ImageLoaderUtils {
         }
     }
 
-    public static void showLargeImageView(View aView, int aViewId, String aUrl) {
-        ImageView imageView = (ImageView) aView.findViewById(aViewId);
+    public static void showLargeImageView(ImageView aView, String aUrl) {
         if (aUrl != null) {
-            Picasso.with(aView.getContext()).load(aUrl).resize(300, 300).into(imageView);
+            Picasso.with(aView.getContext()).load(aUrl).resize(300, 300).into(aView);
         } else {
-            imageView.setImageResource(DEFAULT_THUMBNAIL_ID);
+            aView.setImageResource(DEFAULT_THUMBNAIL_ID);
         }
     }
 
