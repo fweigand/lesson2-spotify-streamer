@@ -39,7 +39,9 @@ public class PlayerService extends Service {
             int currentPosition = 0;
             do {
                 try {
-                    Thread.sleep(70);
+                    // the sleep time could be implemented to adjust dynamically, so that we hit
+                    // almost at 1s intervals. right now we do a little too much checking
+                    Thread.sleep(80);
                 } catch (InterruptedException e) {
                     isFinished = true;
                 }

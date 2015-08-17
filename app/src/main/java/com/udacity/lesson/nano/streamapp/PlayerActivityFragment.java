@@ -181,6 +181,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.i(TAG, "onPaused()");
                 holder.playButton.setImageResource(android.R.drawable.ic_media_play);
             }
         });
@@ -191,6 +192,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.i(TAG, "onResumed()");
                 holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
             }
         });
@@ -201,6 +203,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "onProgress() progress=" + aProgress);
                 if (!isScrubbing) {
                     holder.seekBar.setProgress(aProgress);
                 }
@@ -211,6 +214,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     @Override
     public void onFinished() {
+        Log.d(TAG, "onFinished()");
     }
 
     // ViewHolder Pattern as recommended by the review of Lesson 1:
