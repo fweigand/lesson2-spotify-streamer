@@ -19,10 +19,12 @@ import android.widget.TextView;
 import com.udacity.lesson.nano.streamapp.service.PlayerService;
 import com.udacity.lesson.nano.streamapp.service.PlayerServiceListener;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
-import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
 
 import java.util.List;
 
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TOP_TRACKS;
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TRACK_NUMBER;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -71,17 +73,29 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//        setRetainInstance(true);
-        Intent intent = getActivity().getIntent();
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt( TRACK_NUMBER, trackIndex );
+        Log.d(TAG, "onSaveInstanceState()");
+    }
 
-        trackList = intent.getParcelableArrayListExtra(SpotifyItemKeys.TOP_TRACKS);
-        trackIndex = intent.getIntExtra(SpotifyItemKeys.TRACK_NUMBER, 0);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Intent intent = getActivity().getIntent();
+        Log.i(TAG, "onCreateView()");
+
+        if (savedInstanceState != null) {
+            Log.d(TAG, "savedInstanceState != null");
+            trackIndex = savedInstanceState.getInt(TRACK_NUMBER, 0);
+        } else {
+            trackIndex = intent.getIntExtra(TRACK_NUMBER, 0);
+        }
+        trackList = intent.getParcelableArrayListExtra(TOP_TRACKS);
 
         View rootView = inflater.inflate(R.layout.fragment_player, container, false);
         holder = new ViewHolder(rootView);
 
-        String artistName = intent.getStringExtra(SpotifyItemKeys.ARTIST_NAME);
+        String artistName = intent.getStringExtra(ARTIST_NAME);
         holder.artistNameTextView.setText(artistName);
 
         final int trackListSize = trackList.size();

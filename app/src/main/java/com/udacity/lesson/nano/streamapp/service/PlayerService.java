@@ -145,8 +145,13 @@ public class PlayerService extends Service {
                 Toast.makeText(getApplicationContext(),
                         R.string.media_player_problem, Toast.LENGTH_SHORT).show();
             }
-        } else if (mediaPlayer.isPlaying()) { // already playing this currentTrack
+        } else { // already bound to this track - either playing or paused
             notifyStarted(mediaPlayer.getDuration());
+            if( mediaPlayer.isPlaying() ) {
+                notifyResumed();
+            } else {
+                notifyPaused();
+            }
         }
     }
 

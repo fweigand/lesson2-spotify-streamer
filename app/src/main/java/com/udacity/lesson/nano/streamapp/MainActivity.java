@@ -1,17 +1,30 @@
 package com.udacity.lesson.nano.streamapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.udacity.lesson.nano.streamapp.service.PlayerService;
+
 public class MainActivity extends ActionBarActivity {
+
+    private Intent serviceIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        serviceIntent = new Intent(getApplicationContext(), PlayerService.class);
+        startService(serviceIntent);
+    }
+
+    @Override
+    public void onDestroy() {
+        stopService(serviceIntent);
+        super.onDestroy();
     }
 
     @Override

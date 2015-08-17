@@ -33,22 +33,6 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
 
     private ListView mListView;
 
-
-    private Intent serviceIntent;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
-        getActivity().startService(serviceIntent);
-    }
-
-    @Override
-    public void onDestroy() {
-        getActivity().stopService(serviceIntent);
-        super.onDestroy();
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -122,7 +106,6 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
         return aList.size() + " track item" + (aList.size() > 1 ? "s" : "");
     }
 
-
     @Override
     public void onUpdate(List<SpotifyItem.Track> aItems) {
         if (aItems.isEmpty()) {
@@ -138,7 +121,6 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
         mSpotifyAdapter.addAll(aItems);
         mSpotifyAdapter.notifyDataSetChanged(); // notify only once
     }
-
 
     // Do I really have to check this way to differentiate between single and two pane mode?
     // This seems like a disparity to me.
