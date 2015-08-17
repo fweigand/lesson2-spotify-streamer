@@ -76,7 +76,7 @@ public class PlayerService extends Service {
         mediaPlayer.setOnPreparedListener(listener);
         mediaPlayer.setOnErrorListener(listener);
         mediaPlayer.setOnSeekCompleteListener(listener);
-        executor.execute( progressTracker );
+        executor.execute(progressTracker);
     }
 
     @Override
@@ -96,7 +96,6 @@ public class PlayerService extends Service {
             Log.d(TAG, "stopping playback");
             mediaPlayer.stop();
         }
-        notifyFinished();
     }
 
     public void play(SpotifyItem.Track aTrack) {
@@ -172,7 +171,7 @@ public class PlayerService extends Service {
             // if this was done as part of a restart after the playback had already finished
             // we do not start right away, but seek to the target position and resume
             // playing only after the seek operation has completed also
-            if( position > 0 ) {
+            if (position > 0) {
                 mediaPlayer.seekTo(position);
                 position = 0;
             } else {
@@ -206,16 +205,33 @@ public class PlayerService extends Service {
     }
 
     // the simple notification methods:
-    private void notifyPaused() { if (listener != null) { listener.onPaused();  }  }
-    private void notifyResumed() { if (listener != null) { listener.onResumed(); } }
-    private void notifyFinished() { if (listener != null) { listener.onFinished(); } }
+    private void notifyPaused() {
+        if (listener != null) {
+            listener.onPaused();
+        }
+    }
+
+    private void notifyResumed() {
+        if (listener != null) {
+            listener.onResumed();
+        }
+    }
+
+    private void notifyFinished() {
+        if (listener != null) {
+            listener.onFinished();
+        }
+    }
+
     private void notifyProgress(int aProgress) {
-        if (listener != null) { listener.onProgress(aProgress); }
+        if (listener != null) {
+            listener.onProgress(aProgress);
+        }
     }
-    private void notifyBuffered(int aProgress) {
-        if (listener != null) { listener.onBuffered(aProgress); }
-    }
+
     private void notifyStarted(int aMaxProgress) {
-        if (listener != null) { listener.onStarted(currentTrack, aMaxProgress); }
+        if (listener != null) {
+            listener.onStarted(currentTrack, aMaxProgress);
+        }
     }
 }

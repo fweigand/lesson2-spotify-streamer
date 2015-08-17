@@ -20,8 +20,6 @@ import com.udacity.lesson.nano.streamapp.service.PlayerService;
 import com.udacity.lesson.nano.streamapp.service.PlayerServiceListener;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
 
-import org.w3c.dom.Text;
-
 import java.util.List;
 
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
@@ -61,6 +59,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
             @Override
             public void onServiceDisconnected(ComponentName name) {
                 Log.i(TAG, "onServiceDisconnected()");
+                service.setListener(null);
             }
         };
         Intent serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
@@ -70,6 +69,8 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     @Override
     public void onStop() {
         Log.i(TAG, "onStop()");
+        service.setListener(null);
+        service = null;
         getActivity().unbindService(serviceConnection);
         serviceConnection = null;
         super.onStop();
@@ -85,7 +86,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Intent intent = getActivity().getIntent();
-        Log.i(TAG, "onCreateView()");
+        Log.i(TAG, "onCreateView() begin");
 
         if (savedInstanceState != null) {
             Log.d(TAG, "savedInstanceState != null");
@@ -100,6 +101,8 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
         String artistName = intent.getStringExtra(ARTIST_NAME);
         holder.artistNameTextView.setText(artistName);
+        SpotifyItem.Track track = trackList.get(trackIndex);
+        setTrackInfos(track);
 
         final int trackListSize = trackList.size();
         holder.nextButton.setOnClickListener(new View.OnClickListener() {
@@ -155,6 +158,8 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 isScrubbing = false;
             }
         });
+
+        Log.i(TAG, "onCreateView() end");
         return rootView;
     }
 
@@ -163,17 +168,21 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 MILLISECONDS.toSeconds(aMillis) - MINUTES.toSeconds(MILLISECONDS.toMinutes(aMillis)));
     }
 
+    private void setTrackInfos( final SpotifyItem.Track track ) {
+        holder.trackNameTextView.setText(track.name);
+        holder.albumNameTextView.setText(track.albumName);
+        holder.trackLengthTextView.setText(millisToFormattedString(track.durationMs));
+        ImageLoaderUtils.showLargeImageView(holder.albumArtwork, track.largeImageUrl);
+    }
+
     @Override
     public void onStarted(final SpotifyItem.Track track, final int aDurationMs) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                holder.trackNameTextView.setText(track.name);
-                holder.albumNameTextView.setText(track.albumName);
+                setTrackInfos( track );
                 holder.seekBar.setMax(aDurationMs);
-                holder.trackLengthTextView.setText(millisToFormattedString(track.durationMs));
                 holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
-                ImageLoaderUtils.showLargeImageView(holder.albumArtwork, track.largeImageUrl);
                 isWaitingOnNextMediaPlayerAction = false;
             }
         });

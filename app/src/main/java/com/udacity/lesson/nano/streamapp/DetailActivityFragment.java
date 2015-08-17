@@ -22,6 +22,7 @@ import java.util.List;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_ID;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TOP_TRACKS;
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TRACK_NUMBER;
 
 public class DetailActivityFragment extends Fragment implements SpotifyCallback<SpotifyItem.Track> {
 
@@ -62,6 +63,7 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
                 intent.putParcelableArrayListExtra(TOP_TRACKS, items);
                 final String artistName = getContextData( ARTIST_NAME );
                 intent.putExtra(ARTIST_NAME, artistName);
+                intent.putExtra(TRACK_NUMBER, position);
                 startActivity(intent);
             }
         });
