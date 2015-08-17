@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.udacity.lesson.nano.streamapp.service.PlayerService;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyCallback;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
@@ -31,6 +32,22 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
     private SpotifyItemAdapter.Track mSpotifyAdapter;
 
     private ListView mListView;
+
+
+    private Intent serviceIntent;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
+        getActivity().startService(serviceIntent);
+    }
+
+    @Override
+    public void onDestroy() {
+        getActivity().stopService(serviceIntent);
+        super.onDestroy();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

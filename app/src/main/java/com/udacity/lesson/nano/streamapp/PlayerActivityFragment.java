@@ -48,23 +48,23 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     private PlayerService service;
     private ServiceConnection serviceConnection;
-    private Intent serviceIntent;
+//    private Intent serviceIntent;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        Log.i(TAG, "onCreate()");
-        super.onCreate(savedInstanceState);
-        serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
-        getActivity().startService(serviceIntent);
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.i(TAG, "onDestroy()");
-        getActivity().stopService(serviceIntent);
-        service = null;
-        super.onDestroy();
-    }
+//    @Override
+//    public void onCreate(Bundle savedInstanceState) {
+//        Log.i(TAG, "onCreate()");
+//        super.onCreate(savedInstanceState);
+//        serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
+//        getActivity().startService(serviceIntent);
+//    }
+//
+//    @Override
+//    public void onDestroy() {
+//        Log.i(TAG, "onDestroy()");
+//        getActivity().stopService(serviceIntent);
+//        service = null;
+//        super.onDestroy();
+//    }
 
     @Override
     public void onStart() {
@@ -74,6 +74,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         serviceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder binder) {
+                Log.i(TAG, "onServiceConnected()");
                 PlayerService.PlayerServiceBinder pbinder = (PlayerService.PlayerServiceBinder) binder;
                 service = pbinder.getService();
                 service.setListener(PlayerActivityFragment.this);
@@ -82,15 +83,16 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
+                Log.i(TAG, "onServiceDisconnected()");
             }
         };
+        Intent serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
         getActivity().bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     public void onStop() {
         Log.i(TAG, "onStop()");
-
         getActivity().unbindService(serviceConnection);
         serviceConnection = null;
         super.onStop();

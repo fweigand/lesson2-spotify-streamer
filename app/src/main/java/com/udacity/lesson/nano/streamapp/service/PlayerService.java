@@ -30,7 +30,6 @@ public class PlayerService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-      //  stop();
         return false;
     }
 
@@ -79,6 +78,11 @@ public class PlayerService extends Service {
         mediaPlayer.setOnErrorListener(listener);
     }
 
+    @Override
+    public void onDestroy() {
+        stop();
+    }
+
     // only support a single listener ATM
     public void setListener(PlayerServiceListener aListener) {
         listener = aListener;
@@ -124,17 +128,19 @@ public class PlayerService extends Service {
 
     public void play(SpotifyItem.Track aTrack) {
         Log.d(TAG, "starting playback");
-        track = aTrack;
-        stop();
-        String url = track.trackUrl;
-        try {
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(url);
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            Log.e(TAG, "media player setup problem: " + e.getMessage());
-            Toast.makeText(getApplicationContext(),
-                    R.string.media_player_problem, Toast.LENGTH_SHORT).show();
+        if( aTrack != track ) {
+            track = aTrack;
+            stop();
+            String url = track.trackUrl;
+            try {
+                mediaPlayer.reset();
+                mediaPlayer.setDataSource(url);
+                mediaPlayer.prepareAsync();
+            } catch (IOException e) {
+                Log.e(TAG, "media player setup problem: " + e.getMessage());
+                Toast.makeText(getApplicationContext(),
+                        R.string.media_player_problem, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -175,7 +181,6 @@ public class PlayerService extends Service {
 
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
-            Log.e(TAG, "media player problem what=" + what + ", extra=" + extra + " " + mp);
             notifyFinished();
             Toast.makeText(getApplicationContext(),
                     R.string.media_player_problem, Toast.LENGTH_SHORT).show();
