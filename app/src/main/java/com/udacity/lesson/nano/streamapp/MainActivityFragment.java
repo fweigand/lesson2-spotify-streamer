@@ -2,6 +2,7 @@ package com.udacity.lesson.nano.streamapp;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -25,6 +26,8 @@ import java.util.List;
 
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_ID;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_QUERY_RESULT;
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TOP_TRACKS;
 
 public class MainActivityFragment extends Fragment implements SpotifyCallback<SpotifyItem.Artist> {
 
@@ -39,12 +42,22 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        List<SpotifyItem.Artist> initialEntry = new ArrayList<>();
+        List<SpotifyItem.Artist> artistQueryList = new ArrayList<>();
+
+        if (savedInstanceState != null) {
+            ArrayList<SpotifyItem.Artist> items = savedInstanceState.getParcelableArrayList(ARTIST_QUERY_RESULT);
+            if (items != null || !items.isEmpty()) {
+                artistQueryList.addAll(items);
+            }
+        }
 
         final String enterSearchPhrase = rootView.getContext().getString(R.string.enter_search_phrase);
-        SpotifyItem.Artist emptyFlavor = new SpotifyItem.Artist(enterSearchPhrase, null, 0, null);
-        initialEntry.add(emptyFlavor);
-        mSpotifyAdapter = new SpotifyItemAdapter.Artist(getActivity(), 0, initialEntry);
+        if( artistQueryList.isEmpty() ) {
+            SpotifyItem.Artist emptyFlavor = new SpotifyItem.Artist(enterSearchPhrase, null, 0, null);
+            artistQueryList.add(emptyFlavor);
+        }
+
+        mSpotifyAdapter = new SpotifyItemAdapter.Artist(getActivity(), 0, artistQueryList);
 
         mListView = (ListView) rootView.findViewById(R.id.listview_artists);
         mListView.setAdapter(mSpotifyAdapter);
@@ -109,6 +122,25 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
             }
         });
         return rootView;
+    }
+
+
+    // convert the adapter elements to parcelable
+    private ArrayList<Parcelable> asParcelable() {
+        ArrayList<Parcelable> items = new ArrayList<>();
+        for (int i = 0; i < mSpotifyAdapter.getCount(); i++) {
+            items.add(mSpotifyAdapter.getItem(i));
+        }
+        return items;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mSpotifyAdapter.getCount() > 0) {
+            ArrayList<Parcelable> items = asParcelable();
+            outState.putParcelableArrayList(ARTIST_QUERY_RESULT, items);
+        }
     }
 
     @Override
