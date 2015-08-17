@@ -22,7 +22,7 @@ public class SpotifyItem {
     }
 
     // holds artist specific data
-    public static class Artist extends SpotifyItem {
+    public static class Artist extends SpotifyItem implements Parcelable {
 
         public final String id;
 
@@ -30,6 +30,35 @@ public class SpotifyItem {
             super(aName, aImageUrl, aPopularity);
             id = aId;
         }
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(popularity);
+            dest.writeString(imageUrl);
+            dest.writeString(name);
+            dest.writeString(id);
+        }
+
+        // used when passed around as Intent data
+        public static final Parcelable.Creator<Artist> CREATOR = new Parcelable.Creator<Artist>() {
+            @Override
+            public Artist createFromParcel(Parcel in) {
+                int popularity = in.readInt();
+                String imageUrl = in.readString();
+                String name = in.readString();
+                String id = in.readString();
+                return new Artist(name, imageUrl, popularity, id);
+            }
+
+            @Override
+            public Artist[] newArray(int size) {
+                return new Artist[size];
+            }
+        };
     }
 
     // holds track specific data

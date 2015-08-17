@@ -124,7 +124,6 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
         return rootView;
     }
 
-
     // convert the adapter elements to parcelable
     private ArrayList<Parcelable> asParcelable() {
         ArrayList<Parcelable> items = new ArrayList<>();

@@ -26,7 +26,11 @@ public class PlayerService extends Service {
     private PlayerServiceListener listener; // currently only one listener is supported
     private SpotifyItem.Track currentTrack; // and only one song at a time is kept track of
 
+    // this could be augmented into a full state machine manager
+    // MediaPlayer only has a isPlaying() method but no "isSeeking()" or sth. similar
     private volatile boolean isFinished;
+    private volatile boolean isPreparing;
+
     private volatile int position;
 
     @Override
@@ -110,6 +114,7 @@ public class PlayerService extends Service {
                 mediaPlayer.setDataSource(url);
                 Log.d(TAG, "prepareAsync()");
                 mediaPlayer.prepareAsync();
+                isPreparing = true;
             } catch (IOException e) {
                 Log.e(TAG, "media player setup problem: " + e.getMessage());
                 Toast.makeText(getApplicationContext(),
@@ -146,6 +151,8 @@ public class PlayerService extends Service {
             currentTrack = null;
             position = aProgressMs;
             play(track);
+        } else if( isPreparing ) {
+            position = aProgressMs;
         } else {
             mediaPlayer.seekTo(aProgressMs);
         }
@@ -165,6 +172,7 @@ public class PlayerService extends Service {
         public void onPrepared(MediaPlayer mp) {
             Log.d(TAG, "onPrepared()");
             isFinished = false;
+            isPreparing = false;
 
             // if this was done as part of a restart after the playback had already finished
             // we do not start right away, but seek to the target position and resume
