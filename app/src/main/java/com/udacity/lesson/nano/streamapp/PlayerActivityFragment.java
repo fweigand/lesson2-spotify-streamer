@@ -20,6 +20,8 @@ import com.udacity.lesson.nano.streamapp.service.PlayerService;
 import com.udacity.lesson.nano.streamapp.service.PlayerServiceListener;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
 
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
@@ -109,7 +111,6 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 }
             }
         });
-
         holder.previousButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -120,7 +121,6 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 }
             }
         });
-
         holder.playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -129,23 +129,19 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 }
             }
         });
-
         holder.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int lastProgress = -1;
-
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
                     lastProgress = progress;
                 }
             }
-
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 lastProgress = -1;
                 isScrubbing = true;
             }
-
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (lastProgress != -1) {
@@ -215,10 +211,9 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     @Override
     public void onFinished() {
-
     }
 
-    // as recommended by the review of Lesson 1:
+    // ViewHolder Pattern as recommended by the review of Lesson 1:
     private static class ViewHolder {
         final TextView trackNameTextView;
         final TextView albumNameTextView;
@@ -232,16 +227,25 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         final ImageView albumArtwork;
 
         public ViewHolder(View aView) {
-            artistNameTextView = (TextView) aView.findViewById(R.id.player_artist_name);
-            trackNameTextView = (TextView) aView.findViewById(R.id.player_track_name);
-            albumNameTextView = (TextView) aView.findViewById(R.id.player_album_name);
-            seekBar = (SeekBar) aView.findViewById(R.id.player_seek_bar);
-            trackLengthTextView = (TextView) aView.findViewById(R.id.player_track_length);
-            playButton = (ImageButton) aView.findViewById(R.id.player_play);
-            nextButton = (ImageButton) aView.findViewById(R.id.player_next);
-            previousButton = (ImageButton) aView.findViewById(R.id.player_previous);
-            trackPosition = (TextView) aView.findViewById(R.id.player_track_position);
-            albumArtwork = (ImageView) aView.findViewById(R.id.player_album_artwork);
+            artistNameTextView = getTextView(aView, R.id.player_artist_name);
+            trackNameTextView = getTextView(aView, R.id.player_track_name);
+            albumNameTextView = getTextView(aView, R.id.player_album_name);
+            seekBar = get(aView, R.id.player_seek_bar, SeekBar.class);
+            trackLengthTextView = getTextView(aView, R.id.player_track_length);
+            playButton = getImageButton(aView, R.id.player_play);
+            nextButton = getImageButton(aView, R.id.player_next);
+            previousButton = getImageButton(aView, R.id.player_previous);
+            trackPosition = getTextView(aView, R.id.player_track_position);
+            albumArtwork = get(aView, R.id.player_album_artwork, ImageView.class);
+        }
+        private TextView getTextView(View aView, int aId) {
+            return get(aView, aId, TextView.class);
+        }
+        private ImageButton getImageButton(View aView, int aId) {
+            return get(aView, aId, ImageButton.class);
+        }
+        private <T> T get(View aView, int aId, Class<T> aClass ) {
+            return aClass.cast(aView.findViewById(aId));
         }
     }
 }

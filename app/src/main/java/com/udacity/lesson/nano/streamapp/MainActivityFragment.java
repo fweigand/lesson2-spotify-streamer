@@ -23,6 +23,9 @@ import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyRequester;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_ID;
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
+
 public class MainActivityFragment extends Fragment implements SpotifyCallback<SpotifyItem.Artist> {
 
     private static final String LOG_TAG = MainActivityFragment.class.getSimpleName();
@@ -60,8 +63,8 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
                     // adding or replacing the detail fragment using a
                     // fragment transaction.
                     Bundle arguments = new Bundle();
-                    arguments.putString(SpotifyItemKeys.ARTIST_ID, flavor.id);
-                    arguments.putString(SpotifyItemKeys.ARTIST_NAME, flavor.name);
+                    arguments.putString(ARTIST_ID, flavor.id);
+                    arguments.putString(ARTIST_NAME, flavor.name);
 
                     DetailActivityFragment fragment = new DetailActivityFragment();
                     fragment.setArguments(arguments);
@@ -70,7 +73,7 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
 
                 } else {
                     Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .putExtra(SpotifyItemKeys.ARTIST_ID, flavor.id).putExtra(SpotifyItemKeys.ARTIST_NAME, flavor.name);
+                            .putExtra(ARTIST_ID, flavor.id).putExtra(ARTIST_NAME, flavor.name);
                     startActivity(intent);
                 }
 
