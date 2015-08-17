@@ -2,7 +2,6 @@ package com.udacity.lesson.nano.streamapp.spotifydata;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 /**
  * POJO holding Spotify data.
@@ -30,6 +29,7 @@ public class SpotifyItem {
             super(aName, aImageUrl, aPopularity);
             id = aId;
         }
+
         @Override
         public int describeContents() {
             return 0;
@@ -106,7 +106,7 @@ public class SpotifyItem {
                 String largeImageUrl = in.readString();
                 int durationMs = in.readInt();
                 return new Track(name, imageUrl, popularity, albumName, trackUrl, largeImageUrl,
-                                 durationMs);
+                        durationMs);
             }
 
             @Override

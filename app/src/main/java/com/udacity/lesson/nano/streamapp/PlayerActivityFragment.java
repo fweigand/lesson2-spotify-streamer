@@ -5,8 +5,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,12 +45,12 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     @Override
     public void onStart() {
-        Log.i(TAG, "onStart()");
+        Log.v(TAG, "onStart()");
         super.onStart();
         serviceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder binder) {
-                Log.i(TAG, "onServiceConnected()");
+                Log.v(TAG, "onServiceConnected()");
                 service = ((PlayerService.PlayerServiceBinder) binder).getService();
                 service.setListener(PlayerActivityFragment.this);
                 service.play(trackList.get(trackIndex));
@@ -58,7 +58,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-                Log.i(TAG, "onServiceDisconnected()");
+                Log.v(TAG, "onServiceDisconnected()");
                 service.setListener(null);
             }
         };
@@ -68,7 +68,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     @Override
     public void onStop() {
-        Log.i(TAG, "onStop()");
+        Log.v(TAG, "onStop()");
         service.setListener(null);
         service = null;
         getActivity().unbindService(serviceConnection);
@@ -80,16 +80,16 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(TRACK_NUMBER, trackIndex);
-        Log.d(TAG, "onSaveInstanceState()");
+        Log.v(TAG, "onSaveInstanceState()");
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Intent intent = getActivity().getIntent();
-        Log.i(TAG, "onCreateView() begin");
+        Log.v(TAG, "onCreateView() begin");
 
         if (savedInstanceState != null) {
-            Log.d(TAG, "savedInstanceState != null");
+            Log.v(TAG, "savedInstanceState != null");
             trackIndex = savedInstanceState.getInt(TRACK_NUMBER, 0);
         } else {
             trackIndex = intent.getIntExtra(TRACK_NUMBER, 0);
@@ -152,14 +152,13 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (lastProgress != -1) {
-                    service.seekTo(lastProgress);
-                    Log.w("touch complete", "pos=" + lastProgress);
+                    service.jumpTo(lastProgress);
                 }
                 isScrubbing = false;
             }
         });
 
-        Log.i(TAG, "onCreateView() end");
+        Log.v(TAG, "onCreateView() end");
         return rootView;
     }
 
@@ -168,7 +167,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 MILLISECONDS.toSeconds(aMillis) - MINUTES.toSeconds(MILLISECONDS.toMinutes(aMillis)));
     }
 
-    private void setTrackInfos( final SpotifyItem.Track track ) {
+    private void setTrackInfos(final SpotifyItem.Track track) {
         holder.trackNameTextView.setText(track.name);
         holder.albumNameTextView.setText(track.albumName);
         holder.trackLengthTextView.setText(millisToFormattedString(track.durationMs));
@@ -180,7 +179,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                setTrackInfos( track );
+                setTrackInfos(track);
                 holder.seekBar.setMax(aDurationMs);
                 holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
                 isWaitingOnNextMediaPlayerAction = false;
@@ -193,7 +192,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.i(TAG, "onPaused()");
+                Log.v(TAG, "onPaused()");
                 holder.playButton.setImageResource(android.R.drawable.ic_media_play);
             }
         });
@@ -204,7 +203,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.i(TAG, "onResumed()");
+                Log.v(TAG, "onResumed()");
                 holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
             }
         });
@@ -215,7 +214,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "onProgress() progress=" + aProgress);
+                Log.v(TAG, "onProgress() progress=" + aProgress);
                 if (!isScrubbing) {
                     holder.seekBar.setProgress(aProgress);
                 }
@@ -226,12 +225,12 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     @Override
     public void onFinished() {
-        Log.d(TAG, "onFinished()");
+        Log.v(TAG, "onFinished()");
         int max = holder.seekBar.getMax();
         onProgress(max);
     }
 
-    // ViewHolder Pattern as recommended by the review of Lesson 1:
+    // ViewHolder Pattern as recommended by the review of Lesson 1: I like it!
     private static class ViewHolder {
         final TextView trackNameTextView;
         final TextView albumNameTextView;

@@ -73,10 +73,10 @@ public class SpotifyRequester {
         }
     };
 
-    private String findBestImage(List<Image> images, ImageMatcher aMatcher ) {
+    private String findBestImage(List<Image> images, ImageMatcher aMatcher) {
         Image image = null;
         for (Image i : images) {
-            if (image == null || aMatcher.preferImage(i, image) ) {
+            if (image == null || aMatcher.preferImage(i, image)) {
                 image = i;
             }
         }
@@ -88,7 +88,7 @@ public class SpotifyRequester {
         /**
          * @return true, if aImage should be preferred aOverThisImage
          */
-        boolean preferImage( Image aImage, Image aOverThisImage );
+        boolean preferImage(Image aImage, Image aOverThisImage);
     }
 
 
@@ -115,10 +115,10 @@ public class SpotifyRequester {
 
                 Pager<Artist> artistPager = artistsPager.artists;
                 for (Artist artist : artistPager.items) {
-                    list.add( new SpotifyItem.Artist(artist.name,
-                                       findBestImage(artist.images, matcher),
-                                                    artist.popularity,
-                                                    artist.id));
+                    list.add(new SpotifyItem.Artist(artist.name,
+                            findBestImage(artist.images, matcher),
+                            artist.popularity,
+                            artist.id));
                 }
 
                 Collections.sort(list, popularityItemComparator);
@@ -147,10 +147,10 @@ public class SpotifyRequester {
                  *   If the image size does not exist in the API response, you are free to choose whatever size is
                  *   available.)"
                  */
-                if( aImage.width == 200 && aImage.height == 200 ) {
+                if (aImage.width == 200 && aImage.height == 200) {
                     return true;  // this wins if we have a 200x200 at hand
                 }
-                if( aOverThisImage.width == 200 && aOverThisImage.height == 200 ) {
+                if (aOverThisImage.width == 200 && aOverThisImage.height == 200) {
                     return false; // the other image wins if a 200x200 was already found
                 }
                 // otherwise keep the smaller one
@@ -180,11 +180,11 @@ public class SpotifyRequester {
                     // using a real account
                     int duration = 30000; // (int)track.duration_ms;
                     String url = track.preview_url;
-                    list.add( new SpotifyItem.Track(track.name,
-                                      findBestImage(album.images, matcher),
-                                      track.popularity, album.name, url,
-                                      findBestImage(album.images, largeMatcher),
-                                      duration));
+                    list.add(new SpotifyItem.Track(track.name,
+                            findBestImage(album.images, matcher),
+                            track.popularity, album.name, url,
+                            findBestImage(album.images, largeMatcher),
+                            duration));
                 }
 
                 Collections.sort(list, popularityItemComparator);
@@ -196,8 +196,8 @@ public class SpotifyRequester {
             public void failure(RetrofitError error) {
                 Response response = error.getResponse();
                 Log.d(LOG_TAG, "requesting tracks for " + aArtistName + " failed with: " + error +
-                                " (reason=" + (response != null ? response.getReason() : "unknown") +
-                                " (, url=" + (response != null ? response.getUrl() : "unknown trackUrl")  + ")" );
+                        " (reason=" + (response != null ? response.getReason() : "unknown") +
+                        " (, url=" + (response != null ? response.getUrl() : "unknown trackUrl") + ")");
                 aCallback.onUpdate(Collections.<SpotifyItem.Track>emptyList());
             }
         });

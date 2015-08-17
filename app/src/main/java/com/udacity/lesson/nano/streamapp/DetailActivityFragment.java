@@ -61,7 +61,7 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
                 ArrayList<Parcelable> items = asParcelable();
                 intent.putParcelableArrayListExtra(TOP_TRACKS, items);
-                final String artistName = getContextData( ARTIST_NAME );
+                final String artistName = getContextData(ARTIST_NAME);
                 intent.putExtra(ARTIST_NAME, artistName);
                 intent.putExtra(TRACK_NUMBER, position);
                 startActivity(intent);
@@ -118,7 +118,7 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
 
     // Do I really have to check this way to differentiate between single and two pane mode?
     // This seems like a disparity to me.
-    private String getContextData( String aKey ) {
+    private String getContextData(String aKey) {
         // first call: started via intent gives us the artistId/artistName or whatever we passed in
         String value = getActivity().getIntent().getStringExtra(aKey);
         if (value == null) {

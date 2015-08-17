@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyCallback;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
-import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyRequester;
 
 import java.util.ArrayList;
@@ -27,7 +26,6 @@ import java.util.List;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_ID;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_QUERY_RESULT;
-import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TOP_TRACKS;
 
 public class MainActivityFragment extends Fragment implements SpotifyCallback<SpotifyItem.Artist> {
 
@@ -52,7 +50,7 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
         }
 
         final String enterSearchPhrase = rootView.getContext().getString(R.string.enter_search_phrase);
-        if( artistQueryList.isEmpty() ) {
+        if (artistQueryList.isEmpty()) {
             SpotifyItem.Artist emptyFlavor = new SpotifyItem.Artist(enterSearchPhrase, null, 0, null);
             artistQueryList.add(emptyFlavor);
         }
@@ -152,7 +150,6 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
             toast.show();
             return;
         }
-
         mListView.smoothScrollToPosition(0);
         mSpotifyAdapter.clear();
         mSpotifyAdapter.addAll(aItems);

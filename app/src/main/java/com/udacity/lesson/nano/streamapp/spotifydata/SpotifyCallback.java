@@ -4,6 +4,7 @@ import java.util.List;
 
 /**
  * Callback interface use to update our View once responses from the Spotify Service have been received
+ *
  * @param <T> Type of received items
  */
 public interface SpotifyCallback<T extends SpotifyItem> {
