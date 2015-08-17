@@ -26,6 +26,9 @@ public class PlayerService extends Service {
     private PlayerServiceListener listener; // currently only one listener is supported
     private SpotifyItem.Track currentTrack; // and only one song at a time is kept track of
 
+    private volatile boolean isFinished;
+    private volatile int position;
+
     @Override
     public IBinder onBind(Intent intent) {
         return binder;
@@ -72,6 +75,7 @@ public class PlayerService extends Service {
         mediaPlayer.setOnCompletionListener(listener);
         mediaPlayer.setOnPreparedListener(listener);
         mediaPlayer.setOnErrorListener(listener);
+        mediaPlayer.setOnSeekCompleteListener(listener);
         executor.execute( progressTracker );
     }
 
@@ -85,36 +89,6 @@ public class PlayerService extends Service {
     // only support a single listener ATM
     public void setListener(PlayerServiceListener aListener) {
         listener = aListener;
-    }
-
-    private void notifyStarted(int aMaxProgress) {
-        if (listener != null) {
-            listener.onStarted(currentTrack, aMaxProgress);
-        }
-    }
-
-    private void notifyPaused() {
-        if (listener != null) {
-            listener.onPaused();
-        }
-    }
-
-    private void notifyResumed() {
-        if (listener != null) {
-            listener.onResumed();
-        }
-    }
-
-    private void notifyProgress(int aProgress) {
-        if (listener != null) {
-            listener.onProgress(aProgress);
-        }
-    }
-
-    private void notifyFinished() {
-        if (listener != null) {
-            listener.onFinished();
-        }
     }
 
     public void stop() {
@@ -163,7 +137,21 @@ public class PlayerService extends Service {
     }
 
     public void seekTo(int aProgressMs) {
-        mediaPlayer.seekTo(aProgressMs - 1);
+        Log.d(TAG, "seekTo() position=" + aProgressMs);
+
+        // if the user drags the seekbar after playback has finished we need to save the
+        // position, from where to restart
+        if (isFinished) {
+            SpotifyItem.Track track = currentTrack;
+            currentTrack = null;
+            position = aProgressMs;
+            play(track);
+        } else {
+            // http://stackoverflow.com/questions/3212688/mediaplayer-seekto-does-not-work-for-unbuffered-position
+
+
+            mediaPlayer.seekTo(aProgressMs);
+        }
     }
 
     public class PlayerServiceBinder extends Binder {
@@ -179,13 +167,24 @@ public class PlayerService extends Service {
         @Override
         public void onPrepared(MediaPlayer mp) {
             Log.d(TAG, "onPrepared()");
-            mp.start();
-            notifyStarted(mp.getDuration());
+            isFinished = false;
+
+            // if this was done as part of a restart after the playback had already finished
+            // we do not start right away, but seek to the target position and resume
+            // playing only after the seek operation has completed also
+            if( position > 0 ) {
+                mediaPlayer.seekTo(position);
+                position = 0;
+            } else {
+                mp.start();
+                notifyStarted(mp.getDuration());
+            }
         }
 
         @Override
         public void onCompletion(MediaPlayer mp) {
             Log.d(TAG, "onCompletion()");
+            isFinished = true;
             notifyFinished();
         }
 
@@ -204,5 +203,19 @@ public class PlayerService extends Service {
             mp.start();
             notifyStarted(mp.getDuration());
         }
+    }
+
+    // the simple notification methods:
+    private void notifyPaused() { if (listener != null) { listener.onPaused();  }  }
+    private void notifyResumed() { if (listener != null) { listener.onResumed(); } }
+    private void notifyFinished() { if (listener != null) { listener.onFinished(); } }
+    private void notifyProgress(int aProgress) {
+        if (listener != null) { listener.onProgress(aProgress); }
+    }
+    private void notifyBuffered(int aProgress) {
+        if (listener != null) { listener.onBuffered(aProgress); }
+    }
+    private void notifyStarted(int aMaxProgress) {
+        if (listener != null) { listener.onStarted(currentTrack, aMaxProgress); }
     }
 }

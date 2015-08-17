@@ -10,7 +10,7 @@ public interface PlayerServiceListener {
 
     void onResumed();
 
-    void onProgress(int aProgress);
+    void onProgress(int aProgressMs);
 
     void onFinished();
 

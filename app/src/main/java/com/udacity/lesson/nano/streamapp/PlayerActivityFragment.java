@@ -57,6 +57,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 service.setListener(PlayerActivityFragment.this);
                 service.play(trackList.get(trackIndex));
             }
+
             @Override
             public void onServiceDisconnected(ComponentName name) {
                 Log.i(TAG, "onServiceDisconnected()");
@@ -77,7 +78,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt( TRACK_NUMBER, trackIndex );
+        outState.putInt(TRACK_NUMBER, trackIndex);
         Log.d(TAG, "onSaveInstanceState()");
     }
 
@@ -124,24 +125,27 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         holder.playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if( !isWaitingOnNextMediaPlayerAction ) {
+                if (!isWaitingOnNextMediaPlayerAction) {
                     service.togglePlay();
                 }
             }
         });
         holder.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int lastProgress = -1;
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
                     lastProgress = progress;
                 }
             }
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 lastProgress = -1;
                 isScrubbing = true;
             }
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (lastProgress != -1) {
@@ -167,7 +171,6 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 holder.trackNameTextView.setText(track.name);
                 holder.albumNameTextView.setText(track.albumName);
                 holder.seekBar.setMax(aDurationMs);
-                //        seekBar.setMax(track.durationMs);
                 holder.trackLengthTextView.setText(millisToFormattedString(track.durationMs));
                 holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
                 ImageLoaderUtils.showLargeImageView(holder.albumArtwork, track.largeImageUrl);
@@ -215,6 +218,8 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     @Override
     public void onFinished() {
         Log.d(TAG, "onFinished()");
+        int max = holder.seekBar.getMax();
+        onProgress(max);
     }
 
     // ViewHolder Pattern as recommended by the review of Lesson 1:
@@ -242,13 +247,16 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
             trackPosition = getTextView(aView, R.id.player_track_position);
             albumArtwork = get(aView, R.id.player_album_artwork, ImageView.class);
         }
+
         private TextView getTextView(View aView, int aId) {
             return get(aView, aId, TextView.class);
         }
+
         private ImageButton getImageButton(View aView, int aId) {
             return get(aView, aId, ImageButton.class);
         }
-        private <T> T get(View aView, int aId, Class<T> aClass ) {
+
+        private <T> T get(View aView, int aId, Class<T> aClass) {
             return aClass.cast(aView.findViewById(aId));
         }
     }
