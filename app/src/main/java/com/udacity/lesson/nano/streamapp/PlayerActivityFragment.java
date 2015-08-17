@@ -5,10 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,18 +15,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.udacity.lesson.nano.streamapp.service.PlayerService;
 import com.udacity.lesson.nano.streamapp.service.PlayerServiceListener;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -38,49 +30,29 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     private final static String TAG = PlayerActivityFragment.class.getSimpleName();
 
-
     private ViewHolder holder;
 
     private volatile boolean isScrubbing; // true while the user has grabbed the seekbar
+    private volatile boolean isWaitingOnNextMediaPlayerAction; // true while the service prepares for next track
 
     private int trackIndex;
     private List<SpotifyItem.Track> trackList;
 
     private PlayerService service;
     private ServiceConnection serviceConnection;
-//    private Intent serviceIntent;
-
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        Log.i(TAG, "onCreate()");
-//        super.onCreate(savedInstanceState);
-//        serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
-//        getActivity().startService(serviceIntent);
-//    }
-//
-//    @Override
-//    public void onDestroy() {
-//        Log.i(TAG, "onDestroy()");
-//        getActivity().stopService(serviceIntent);
-//        service = null;
-//        super.onDestroy();
-//    }
 
     @Override
     public void onStart() {
         Log.i(TAG, "onStart()");
-
         super.onStart();
         serviceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder binder) {
                 Log.i(TAG, "onServiceConnected()");
-                PlayerService.PlayerServiceBinder pbinder = (PlayerService.PlayerServiceBinder) binder;
-                service = pbinder.getService();
+                service = ((PlayerService.PlayerServiceBinder) binder).getService();
                 service.setListener(PlayerActivityFragment.this);
                 service.play(trackList.get(trackIndex));
             }
-
             @Override
             public void onServiceDisconnected(ComponentName name) {
                 Log.i(TAG, "onServiceDisconnected()");
@@ -99,11 +71,8 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
-            savedInstanceState) {
-
-        setRetainInstance(true);
-
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+//        setRetainInstance(true);
         Intent intent = getActivity().getIntent();
 
         trackList = intent.getParcelableArrayListExtra(SpotifyItemKeys.TOP_TRACKS);
@@ -119,23 +88,31 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         holder.nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                trackIndex = ++trackIndex % trackListSize;
-                service.play(trackList.get(trackIndex));
+                if (!isWaitingOnNextMediaPlayerAction) {
+                    trackIndex = ++trackIndex % trackListSize;
+                    service.play(trackList.get(trackIndex));
+                    isWaitingOnNextMediaPlayerAction = true;
+                }
             }
         });
 
         holder.previousButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                trackIndex = trackIndex == 0 ? trackListSize - 1 : --trackIndex % trackListSize;
-                service.play(trackList.get(trackIndex));
+                if (!isWaitingOnNextMediaPlayerAction) {
+                    trackIndex = trackIndex == 0 ? trackListSize - 1 : --trackIndex % trackListSize;
+                    service.play(trackList.get(trackIndex));
+                    isWaitingOnNextMediaPlayerAction = true;
+                }
             }
         });
 
         holder.playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                service.togglePlay();
+                if( !isWaitingOnNextMediaPlayerAction ) {
+                    service.togglePlay();
+                }
             }
         });
 
@@ -173,32 +150,53 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     }
 
     @Override
-    public void onStarted(SpotifyItem.Track track, int aDurationMs) {
-        holder.trackNameTextView.setText(track.name);
-        holder.albumNameTextView.setText(track.albumName);
-        holder.seekBar.setMax(aDurationMs);
-//        seekBar.setMax(track.durationMs);
-        holder.trackLengthTextView.setText(millisToFormattedString(track.durationMs));
-        holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
-        ImageLoaderUtils.showLargeImageView(holder.albumArtwork, track.largeImageUrl);
+    public void onStarted(final SpotifyItem.Track track, final int aDurationMs) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                holder.trackNameTextView.setText(track.name);
+                holder.albumNameTextView.setText(track.albumName);
+                holder.seekBar.setMax(aDurationMs);
+                //        seekBar.setMax(track.durationMs);
+                holder.trackLengthTextView.setText(millisToFormattedString(track.durationMs));
+                holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
+                ImageLoaderUtils.showLargeImageView(holder.albumArtwork, track.largeImageUrl);
+                isWaitingOnNextMediaPlayerAction = false;
+            }
+        });
     }
 
     @Override
     public void onPaused() {
-        holder.playButton.setImageResource(android.R.drawable.ic_media_play);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                holder.playButton.setImageResource(android.R.drawable.ic_media_play);
+            }
+        });
     }
 
     @Override
     public void onResumed() {
-        holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
+            }
+        });
     }
 
     @Override
-    public void onProgress(int aProgress) {
-        if (!isScrubbing) {
-            holder.seekBar.setProgress(aProgress);
-        }
-        holder.trackPosition.setText(millisToFormattedString(aProgress));
+    public void onProgress(final int aProgress) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (!isScrubbing) {
+                    holder.seekBar.setProgress(aProgress);
+                }
+                holder.trackPosition.setText(millisToFormattedString(aProgress));
+            }
+        });
     }
 
     @Override
@@ -206,6 +204,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     }
 
+    // as recommended by the review of Lesson 1:
     private static class ViewHolder {
         final TextView trackNameTextView;
         final TextView albumNameTextView;
@@ -219,7 +218,6 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         final ImageView albumArtwork;
 
         public ViewHolder(View aView) {
-//            artistNameTextView = find(aView, R.id.player_artist_name, TextView.class);
             artistNameTextView = (TextView) aView.findViewById(R.id.player_artist_name);
             trackNameTextView = (TextView) aView.findViewById(R.id.player_track_name);
             albumNameTextView = (TextView) aView.findViewById(R.id.player_album_name);
@@ -231,6 +229,5 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
             trackPosition = (TextView) aView.findViewById(R.id.player_track_position);
             albumArtwork = (ImageView) aView.findViewById(R.id.player_album_artwork);
         }
-//        private <T> T find(View aView, int id, Class<T> aClass) {return aClass.cast(aView.findViewById(id)); }
     }
 }

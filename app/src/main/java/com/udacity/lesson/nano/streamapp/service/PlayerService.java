@@ -20,8 +20,9 @@ public class PlayerService extends Service {
 
     private final PlayerServiceBinder binder = new PlayerServiceBinder();
     private MediaPlayer mediaPlayer;
+
     private PlayerServiceListener listener;
-    private SpotifyItem.Track track;
+    private SpotifyItem.Track currentTrack;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -68,6 +69,7 @@ public class PlayerService extends Service {
 
     @Override
     public void onCreate() {
+        Log.d(TAG, "onCreate()");
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         // mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
@@ -81,6 +83,7 @@ public class PlayerService extends Service {
     @Override
     public void onDestroy() {
         stop();
+        mediaPlayer.release();
     }
 
     // only support a single listener ATM
@@ -90,7 +93,7 @@ public class PlayerService extends Service {
 
     private void notifyStarted(int aMaxProgress) {
         if (listener != null) {
-            listener.onStarted(track, aMaxProgress);
+            listener.onStarted(currentTrack, aMaxProgress);
         }
     }
 
@@ -128,19 +131,22 @@ public class PlayerService extends Service {
 
     public void play(SpotifyItem.Track aTrack) {
         Log.d(TAG, "starting playback");
-        if( aTrack != track ) {
-            track = aTrack;
+        if (aTrack != currentTrack) {
+            currentTrack = aTrack;
             stop();
-            String url = track.trackUrl;
+            String url = currentTrack.trackUrl;
             try {
                 mediaPlayer.reset();
                 mediaPlayer.setDataSource(url);
+                Log.d(TAG, "prepareAsync()");
                 mediaPlayer.prepareAsync();
             } catch (IOException e) {
                 Log.e(TAG, "media player setup problem: " + e.getMessage());
                 Toast.makeText(getApplicationContext(),
                         R.string.media_player_problem, Toast.LENGTH_SHORT).show();
             }
+        } else if (mediaPlayer.isPlaying()) { // already playing this currentTrack
+            notifyStarted(mediaPlayer.getDuration());
         }
     }
 
@@ -165,22 +171,25 @@ public class PlayerService extends Service {
     }
 
     private class MediaPlayerListener implements MediaPlayer.OnPreparedListener,
-                                                 MediaPlayer.OnCompletionListener,
-                                                 MediaPlayer.OnSeekCompleteListener,
-                                                 MediaPlayer.OnErrorListener {
+            MediaPlayer.OnCompletionListener,
+            MediaPlayer.OnSeekCompleteListener,
+            MediaPlayer.OnErrorListener {
         @Override
         public void onPrepared(MediaPlayer mp) {
+            Log.d(TAG, "onPrepared()");
             mp.start();
             notifyStarted(mp.getDuration());
         }
 
         @Override
         public void onCompletion(MediaPlayer mp) {
+            Log.d(TAG, "onCompletion()");
             notifyFinished();
         }
 
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
+            Log.d(TAG, "onError()");
             notifyFinished();
             Toast.makeText(getApplicationContext(),
                     R.string.media_player_problem, Toast.LENGTH_SHORT).show();
@@ -189,6 +198,7 @@ public class PlayerService extends Service {
 
         @Override
         public void onSeekComplete(MediaPlayer mp) {
+            Log.d(TAG, "onSeekComplete()");
             mp.start();
             notifyStarted(mp.getDuration());
         }
