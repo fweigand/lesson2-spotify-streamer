@@ -13,6 +13,8 @@ import com.udacity.lesson.nano.streamapp.R;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class PlayerService extends Service {
 
@@ -21,51 +23,41 @@ public class PlayerService extends Service {
     private final PlayerServiceBinder binder = new PlayerServiceBinder();
     private MediaPlayer mediaPlayer;
 
-    private PlayerServiceListener listener;
-    private SpotifyItem.Track currentTrack;
+    private PlayerServiceListener listener; // currently only one listener is supported
+    private SpotifyItem.Track currentTrack; // and only one song at a time is kept track of
 
     @Override
     public IBinder onBind(Intent intent) {
         return binder;
     }
 
-    @Override
-    public boolean onUnbind(Intent intent) {
-        return false;
-    }
-
-//    @Override
-//    public int onStartCommand(Intent intent, int flags, int startId) {
-//
-//        boolean isFinished = false;
-//        do {
-//            try {
-//                Thread.sleep(70);
-//            } catch (InterruptedException e) {
-//                isFinished = true;
-//            }
-//            if (!isFinished) {
-//                try {
-//                    final int positionMs = mediaPlayer.getCurrentPosition();
-//                    if (positionMs / 1000 != currentPosition) {
-//                        if (doProgressPublish) {
-//                            publishProgress(positionMs);
-//                            currentPosition = positionMs / 1000;
-//                        }
-//                    }
-//                } catch (IllegalStateException e) {
-//                    publishProgress(maxPosition);
-//                    isFinished = true;
-//                }
-//            } else {
-//                publishProgress(maxPosition);
-//            }
-//
-//        } while (!isFinished);
-//
-//
-//        return super.onStartCommand(intent, flags, startId);
-//    }
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Runnable progressTracker = new Runnable() {
+        @Override
+        public void run() {
+            boolean isFinished = false;
+            int currentPosition = 0;
+            do {
+                try {
+                    Thread.sleep(70);
+                } catch (InterruptedException e) {
+                    isFinished = true;
+                }
+                if (Thread.currentThread().isInterrupted()) {
+                    isFinished = true;
+                }
+                if (!isFinished) {
+                    if (mediaPlayer.isPlaying()) {
+                        final int positionMs = mediaPlayer.getCurrentPosition();
+                        if (positionMs / 1000 != currentPosition) {
+                            notifyProgress(positionMs);
+                            currentPosition = positionMs / 1000;
+                        }
+                    }
+                }
+            } while (!isFinished);
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -78,10 +70,12 @@ public class PlayerService extends Service {
         mediaPlayer.setOnCompletionListener(listener);
         mediaPlayer.setOnPreparedListener(listener);
         mediaPlayer.setOnErrorListener(listener);
+        executor.execute( progressTracker );
     }
 
     @Override
     public void onDestroy() {
+        executor.shutdownNow();
         stop();
         mediaPlayer.release();
     }
@@ -147,7 +141,8 @@ public class PlayerService extends Service {
             }
         } else { // already bound to this track - either playing or paused
             notifyStarted(mediaPlayer.getDuration());
-            if( mediaPlayer.isPlaying() ) {
+            notifyProgress(mediaPlayer.getCurrentPosition());
+            if (mediaPlayer.isPlaying()) {
                 notifyResumed();
             } else {
                 notifyPaused();
