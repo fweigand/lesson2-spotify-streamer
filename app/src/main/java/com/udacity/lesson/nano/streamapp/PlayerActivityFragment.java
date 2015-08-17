@@ -27,6 +27,7 @@ import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,27 +36,42 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 public class PlayerActivityFragment extends DialogFragment implements PlayerServiceListener {
 
+    private final static String TAG = PlayerActivityFragment.class.getSimpleName();
+
+
     private ViewHolder holder;
 
     private volatile boolean isScrubbing; // true while the user has grabbed the seekbar
 
     private int trackIndex;
+    private List<SpotifyItem.Track> trackList;
 
     private PlayerService service;
+    private ServiceConnection serviceConnection;
+    private Intent serviceIntent;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onCreate()");
+        super.onCreate(savedInstanceState);
+        serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
+        getActivity().startService(serviceIntent);
+    }
 
-        Intent intent = getActivity().getIntent();
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "onDestroy()");
+        getActivity().stopService(serviceIntent);
+        service = null;
+        super.onDestroy();
+    }
 
-        final ArrayList<SpotifyItem.Track> trackList = intent.getParcelableArrayListExtra(SpotifyItemKeys.TOP_TRACKS);
-        trackIndex = intent.getIntExtra(SpotifyItemKeys.TRACK_NUMBER, 0);
+    @Override
+    public void onStart() {
+        Log.i(TAG, "onStart()");
 
-        View rootView = inflater.inflate(R.layout.fragment_player, container, false);
-        holder = new ViewHolder(rootView);
-
-        Intent serviceIntent = new Intent(getActivity(), PlayerService.class);
-        getActivity().bindService(serviceIntent, new ServiceConnection() {
+        super.onStart();
+        serviceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder binder) {
                 PlayerService.PlayerServiceBinder pbinder = (PlayerService.PlayerServiceBinder) binder;
@@ -67,7 +83,32 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
             @Override
             public void onServiceDisconnected(ComponentName name) {
             }
-        }, Context.BIND_AUTO_CREATE);
+        };
+        getActivity().bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onStop() {
+        Log.i(TAG, "onStop()");
+
+        getActivity().unbindService(serviceConnection);
+        serviceConnection = null;
+        super.onStop();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
+            savedInstanceState) {
+
+        setRetainInstance(true);
+
+        Intent intent = getActivity().getIntent();
+
+        trackList = intent.getParcelableArrayListExtra(SpotifyItemKeys.TOP_TRACKS);
+        trackIndex = intent.getIntExtra(SpotifyItemKeys.TRACK_NUMBER, 0);
+
+        View rootView = inflater.inflate(R.layout.fragment_player, container, false);
+        holder = new ViewHolder(rootView);
 
         String artistName = intent.getStringExtra(SpotifyItemKeys.ARTIST_NAME);
         holder.artistNameTextView.setText(artistName);
@@ -177,7 +218,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
         public ViewHolder(View aView) {
 //            artistNameTextView = find(aView, R.id.player_artist_name, TextView.class);
-            artistNameTextView = (TextView) aView.findViewById( R.id.player_artist_name);
+            artistNameTextView = (TextView) aView.findViewById(R.id.player_artist_name);
             trackNameTextView = (TextView) aView.findViewById(R.id.player_track_name);
             albumNameTextView = (TextView) aView.findViewById(R.id.player_album_name);
             seekBar = (SeekBar) aView.findViewById(R.id.player_seek_bar);
@@ -186,7 +227,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
             nextButton = (ImageButton) aView.findViewById(R.id.player_next);
             previousButton = (ImageButton) aView.findViewById(R.id.player_previous);
             trackPosition = (TextView) aView.findViewById(R.id.player_track_position);
-            albumArtwork = (ImageView)aView.findViewById(R.id.player_album_artwork);
+            albumArtwork = (ImageView) aView.findViewById(R.id.player_album_artwork);
         }
 //        private <T> T find(View aView, int id, Class<T> aClass) {return aClass.cast(aView.findViewById(id)); }
     }
