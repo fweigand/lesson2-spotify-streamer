@@ -60,6 +60,9 @@ public class PlayerService extends Service {
                         }
                     }
                 }
+                if (Thread.currentThread().isInterrupted()) {
+                    isFinished = true;
+                }
             } while (!isFinished);
         }
     };
@@ -69,8 +72,6 @@ public class PlayerService extends Service {
         Log.d(TAG, "onCreate()");
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        // mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-
         MediaPlayerListener listener = new MediaPlayerListener();
         mediaPlayer.setOnCompletionListener(listener);
         mediaPlayer.setOnPreparedListener(listener);
@@ -146,9 +147,6 @@ public class PlayerService extends Service {
             position = aProgressMs;
             play(track);
         } else {
-            // http://stackoverflow.com/questions/3212688/mediaplayer-seekto-does-not-work-for-unbuffered-position
-
-
             mediaPlayer.seekTo(aProgressMs);
         }
     }
