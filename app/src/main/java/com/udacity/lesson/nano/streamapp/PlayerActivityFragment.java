@@ -20,7 +20,7 @@ import com.udacity.lesson.nano.streamapp.service.PlayerService;
 import com.udacity.lesson.nano.streamapp.service.PlayerServiceListener;
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItem;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TOP_TRACKS;
@@ -38,7 +38,8 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     private volatile boolean isWaitingOnNextMediaPlayerAction; // true while the service prepares for next track
 
     private int trackIndex;
-    private List<SpotifyItem.Track> trackList;
+    private ArrayList<SpotifyItem.Track> trackList;
+    private String artistName;
 
     private PlayerService service;
     private ServiceConnection serviceConnection;
@@ -79,27 +80,38 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(TRACK_NUMBER, trackIndex);
         Log.v(TAG, "onSaveInstanceState()");
+        outState.putInt(TRACK_NUMBER, trackIndex);
+        outState.putParcelableArrayList(TOP_TRACKS, trackList);
+        outState.putString(ARTIST_NAME, artistName);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Intent intent = getActivity().getIntent();
         Log.v(TAG, "onCreateView() begin");
 
         if (savedInstanceState != null) {
             Log.v(TAG, "savedInstanceState != null");
             trackIndex = savedInstanceState.getInt(TRACK_NUMBER, 0);
+            trackList = savedInstanceState.getParcelableArrayList(TOP_TRACKS);
+            artistName = savedInstanceState.getString(ARTIST_NAME);
         } else {
-            trackIndex = intent.getIntExtra(TRACK_NUMBER, 0);
+            Bundle bundle = getArguments();
+            if (bundle != null) {
+                trackIndex = bundle.getInt(TRACK_NUMBER, 0);
+                trackList = bundle.getParcelableArrayList(TOP_TRACKS);
+                artistName = bundle.getString(ARTIST_NAME);
+            } else {
+                Intent intent = getActivity().getIntent();
+                trackIndex = intent.getIntExtra(TRACK_NUMBER, 0);
+                trackList = intent.getParcelableArrayListExtra(TOP_TRACKS);
+                artistName = intent.getStringExtra(ARTIST_NAME);
+            }
         }
-        trackList = intent.getParcelableArrayListExtra(TOP_TRACKS);
 
         View rootView = inflater.inflate(R.layout.fragment_player, container, false);
         holder = new ViewHolder(rootView);
 
-        String artistName = intent.getStringExtra(ARTIST_NAME);
         holder.artistNameTextView.setText(artistName);
         SpotifyItem.Track track = trackList.get(trackIndex);
         setTrackInfos(track);

@@ -76,18 +76,18 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
                     Bundle arguments = new Bundle();
                     arguments.putString(ARTIST_ID, flavor.id);
                     arguments.putString(ARTIST_NAME, flavor.name);
+                    arguments.putBoolean("two.pane.mode", true);
 
                     DetailActivityFragment fragment = new DetailActivityFragment();
                     fragment.setArguments(arguments);
                     getActivity().getSupportFragmentManager().beginTransaction()
                             .replace(R.id.artist_detail_container, fragment).commit();
-
                 } else {
                     Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .putExtra(ARTIST_ID, flavor.id).putExtra(ARTIST_NAME, flavor.name);
+                            .putExtra(ARTIST_ID, flavor.id).putExtra(ARTIST_NAME, flavor.name).
+                                    putExtra("two.pane.mode", false);
                     startActivity(intent);
                 }
-
             }
         });
 

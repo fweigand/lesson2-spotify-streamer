@@ -1,21 +1,37 @@
 package com.udacity.lesson.nano.streamapp;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys;
 
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_ID;
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
 
-public class PlayerActivity extends ActionBarActivity {
+
+public class PlayerActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_player);
         final String prefix = getString(R.string.now_playing);
-        setTitle(prefix + " " + getIntent().getStringExtra(SpotifyItemKeys.ARTIST_NAME));
+        setTitle(prefix + " " + getIntent().getStringExtra(ARTIST_NAME));
+
+                setContentView(R.layout.activity_player);
+//        boolean twoPane = getIntent().getBooleanExtra("two.pane.mode", false);
+//        if( !twoPane ) {
+//        } else {
+//            // setContentView(R.layout.activity_detail);
+//            PlayerActivityFragment fragment = new PlayerActivityFragment();
+//            Bundle bundle = new Bundle();
+//            String artistId = getIntent().getStringExtra(ARTIST_ID);
+//            bundle.putString(ARTIST_ID, artistId);
+//            fragment.setArguments(bundle);
+//            fragment.show(getFragmentManager(), "player");
+//        }
     }
 
     @Override

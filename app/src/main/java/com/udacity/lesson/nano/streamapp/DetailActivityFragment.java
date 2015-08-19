@@ -47,10 +47,34 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
 
         mSpotifyAdapter = new SpotifyItemAdapter.Track(getActivity(), 0, trackList);
 
-        final String artistId = getContextData(ARTIST_ID);
+        boolean twoPaneModeParam;
+        String artistIdParam;
+        String artistNameParam;
+
+        if (savedInstanceState != null) {
+            twoPaneModeParam = savedInstanceState.getBoolean("two.pane.mode", false);
+            artistIdParam = savedInstanceState.getString(ARTIST_ID);
+            artistNameParam = savedInstanceState.getString(ARTIST_NAME);
+        } else {
+            Bundle bundle = getArguments();
+            if (bundle != null) {
+                twoPaneModeParam = bundle.getBoolean("two.pane.mode", false);
+                artistIdParam = bundle.getString(ARTIST_ID);
+                artistNameParam = bundle.getString(ARTIST_NAME);
+            } else {
+                Intent intent = getActivity().getIntent();
+                twoPaneModeParam = intent.getBooleanExtra("two.pane.mode", false);
+                artistIdParam = intent.getStringExtra(ARTIST_ID);
+                artistNameParam = intent.getStringExtra(ARTIST_NAME);
+            }
+        }
+
+        final boolean twoPaneMode = twoPaneModeParam;
+        final String artistId = artistIdParam;
+        final String artistName = artistNameParam;
 
         if (trackList.isEmpty()) { // if we have nothing in the track list, lets request it from the server
-            SpotifyRequester.getInstance().queryTopTracks(artistId, this);
+            SpotifyRequester.getInstance().queryTopTracks(artistIdParam, this);
         }
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
@@ -58,13 +82,24 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
                 ArrayList<Parcelable> items = asParcelable();
-                intent.putParcelableArrayListExtra(TOP_TRACKS, items);
-                final String artistName = getContextData(ARTIST_NAME);
-                intent.putExtra(ARTIST_NAME, artistName);
-                intent.putExtra(TRACK_NUMBER, position);
-                startActivity(intent);
+                if( twoPaneMode ) { // launch directly
+                    PlayerActivityFragment fragment = new PlayerActivityFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelableArrayList(TOP_TRACKS, items);
+                    bundle.putString(ARTIST_NAME, artistName);
+                    bundle.putString(ARTIST_ID, artistId);
+                    bundle.putInt(TRACK_NUMBER, position);
+                    fragment.setArguments(bundle);
+                    fragment.show(getActivity().getFragmentManager(), "player");
+                } else { // launch via intent
+                    Intent intent = new Intent(getActivity(), PlayerActivity.class);
+                    intent.putParcelableArrayListExtra(TOP_TRACKS, items);
+                    intent.putExtra(ARTIST_NAME, artistName);
+                    intent.putExtra(ARTIST_ID, artistId);
+                    intent.putExtra(TRACK_NUMBER, position);
+                    startActivity(intent);
+                }
             }
         });
         mListView.setAdapter(mSpotifyAdapter);
@@ -114,17 +149,5 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
         mSpotifyAdapter.clear();
         mSpotifyAdapter.addAll(aItems);
         mSpotifyAdapter.notifyDataSetChanged(); // notify only once
-    }
-
-    // Do I really have to check this way to differentiate between single and two pane mode?
-    // This seems like a disparity to me.
-    private String getContextData(String aKey) {
-        // first call: started via intent gives us the artistId/artistName or whatever we passed in
-        String value = getActivity().getIntent().getStringExtra(aKey);
-        if (value == null) {
-            // second call: fragment was launched directly
-            value = getArguments().getString(aKey);
-        }
-        return value;
     }
 }

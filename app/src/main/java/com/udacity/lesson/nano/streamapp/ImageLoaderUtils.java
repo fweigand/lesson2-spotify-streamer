@@ -1,5 +1,6 @@
 package com.udacity.lesson.nano.streamapp;
 
+import android.graphics.Rect;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -36,8 +37,11 @@ public class ImageLoaderUtils {
     }
 
     public static void showLargeImageView(ImageView aView, String aUrl) {
+        Rect rect = new Rect();
+        aView.getWindowVisibleDisplayFrame(rect);
         if (aUrl != null) {
-            Picasso.with(aView.getContext()).load(aUrl).resize(300, 300).into(aView);
+            Picasso.with(aView.getContext()).load(aUrl).resize(rect.width() / 2, rect.height() / 2).
+                    centerInside().into(aView);
         } else {
             aView.setImageResource(DEFAULT_THUMBNAIL_ID);
         }
