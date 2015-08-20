@@ -24,6 +24,7 @@ import java.util.ArrayList;
 
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.ARTIST_NAME;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TOP_TRACKS;
+import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TRACK_DURATION;
 import static com.udacity.lesson.nano.streamapp.spotifydata.SpotifyItemKeys.TRACK_NUMBER;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -36,13 +37,18 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     private volatile boolean isScrubbing; // true while the user has grabbed the seekbar
     private volatile boolean isWaitingOnNextMediaPlayerAction; // true while the service prepares for next track
+    private volatile boolean isStopped;
 
     private int trackIndex;
     private ArrayList<SpotifyItem.Track> trackList;
     private String artistName;
+    private int trackDuration;
 
     private PlayerService service;
     private ServiceConnection serviceConnection;
+
+
+    private Intent serviceIntent;
 
     @Override
     public void onStart() {
@@ -61,20 +67,36 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
             public void onServiceDisconnected(ComponentName name) {
                 Log.v(TAG, "onServiceDisconnected()");
                 service.setListener(null);
+                serviceConnection = null;
+                service = null;
             }
         };
-        Intent serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
+
+        serviceIntent = new Intent(getActivity().getApplicationContext(), PlayerService.class);
+        getActivity().startService(serviceIntent);
         getActivity().bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
+    @Override
+    public void onDestroy() {
+        Log.v(TAG, "onDestroy()");
+        super.onDestroy();
+    }
+
 
     @Override
     public void onStop() {
         Log.v(TAG, "onStop()");
-        service.setListener(null);
-        service = null;
+        isStopped = true;
         getActivity().unbindService(serviceConnection);
-        serviceConnection = null;
         super.onStop();
+    }
+
+    // https://code.google.com/p/android/issues/detail?id=17423
+    @Override
+    public void onDestroyView() {
+        if (getDialog() != null && getRetainInstance())
+            getDialog().setDismissMessage(null);
+        super.onDestroyView();
     }
 
     @Override
@@ -82,6 +104,7 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         super.onSaveInstanceState(outState);
         Log.v(TAG, "onSaveInstanceState()");
         outState.putInt(TRACK_NUMBER, trackIndex);
+        outState.putInt(TRACK_DURATION, trackDuration);
         outState.putParcelableArrayList(TOP_TRACKS, trackList);
         outState.putString(ARTIST_NAME, artistName);
     }
@@ -89,12 +112,14 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.v(TAG, "onCreateView() begin");
+        setRetainInstance(true);
 
         if (savedInstanceState != null) {
             Log.v(TAG, "savedInstanceState != null");
             trackIndex = savedInstanceState.getInt(TRACK_NUMBER, 0);
             trackList = savedInstanceState.getParcelableArrayList(TOP_TRACKS);
             artistName = savedInstanceState.getString(ARTIST_NAME);
+            trackDuration = savedInstanceState.getInt(TRACK_DURATION);
         } else {
             Bundle bundle = getArguments();
             if (bundle != null) {
@@ -169,6 +194,9 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
                 isScrubbing = false;
             }
         });
+        if (trackDuration != 0) {
+            holder.seekBar.setMax(trackDuration);
+        }
 
         Log.v(TAG, "onCreateView() end");
         return rootView;
@@ -191,8 +219,10 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.v(TAG, "onStarted() duration=" + aDurationMs);
                 setTrackInfos(track);
                 holder.seekBar.setMax(aDurationMs);
+                trackDuration = aDurationMs;
                 holder.playButton.setImageResource(android.R.drawable.ic_media_pause);
                 isWaitingOnNextMediaPlayerAction = false;
             }
@@ -223,10 +253,14 @@ public class PlayerActivityFragment extends DialogFragment implements PlayerServ
 
     @Override
     public void onProgress(final int aProgress) {
+
+        if( !isVisible() ) {
+            return;
+        }
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.v(TAG, "onProgress() progress=" + aProgress);
+                Log.v(TAG, "onProgress() progress=" + aProgress + " isscrub=" + isScrubbing + " max=" + holder.seekBar.getMax());
                 if (!isScrubbing) {
                     holder.seekBar.setProgress(aProgress);
                 }

@@ -47,29 +47,24 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
 
         mSpotifyAdapter = new SpotifyItemAdapter.Track(getActivity(), 0, trackList);
 
-        boolean twoPaneModeParam;
         String artistIdParam;
         String artistNameParam;
 
         if (savedInstanceState != null) {
-            twoPaneModeParam = savedInstanceState.getBoolean("two.pane.mode", false);
             artistIdParam = savedInstanceState.getString(ARTIST_ID);
             artistNameParam = savedInstanceState.getString(ARTIST_NAME);
         } else {
             Bundle bundle = getArguments();
             if (bundle != null) {
-                twoPaneModeParam = bundle.getBoolean("two.pane.mode", false);
                 artistIdParam = bundle.getString(ARTIST_ID);
                 artistNameParam = bundle.getString(ARTIST_NAME);
             } else {
                 Intent intent = getActivity().getIntent();
-                twoPaneModeParam = intent.getBooleanExtra("two.pane.mode", false);
                 artistIdParam = intent.getStringExtra(ARTIST_ID);
                 artistNameParam = intent.getStringExtra(ARTIST_NAME);
             }
         }
 
-        final boolean twoPaneMode = twoPaneModeParam;
         final String artistId = artistIdParam;
         final String artistName = artistNameParam;
 
@@ -83,6 +78,7 @@ public class DetailActivityFragment extends Fragment implements SpotifyCallback<
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 ArrayList<Parcelable> items = asParcelable();
+                boolean twoPaneMode = getResources().getBoolean(R.bool.has_two_panes);
                 if( twoPaneMode ) { // launch directly
                     PlayerActivityFragment fragment = new PlayerActivityFragment();
                     Bundle bundle = new Bundle();

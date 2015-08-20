@@ -10,19 +10,24 @@ import com.udacity.lesson.nano.streamapp.service.PlayerService;
 
 public class MainActivity extends ActionBarActivity {
 
-    private Intent serviceIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        serviceIntent = new Intent(getApplicationContext(), PlayerService.class);
-        startService(serviceIntent);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 
     @Override
     public void onDestroy() {
-        stopService(serviceIntent);
+        if( isFinishing() ) {
+            Intent serviceIntent = new Intent(getApplicationContext(), PlayerService.class);
+            stopService(serviceIntent);
+        }
         super.onDestroy();
     }
 

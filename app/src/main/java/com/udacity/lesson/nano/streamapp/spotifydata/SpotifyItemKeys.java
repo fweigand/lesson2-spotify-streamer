@@ -16,5 +16,7 @@ public class SpotifyItemKeys {
 
     public final static String TRACK_NUMBER = "top.tracks.number";
 
+    public final static String TRACK_DURATION = "top.tracks.duration";
+
     private SpotifyItemKeys() {}
 }
