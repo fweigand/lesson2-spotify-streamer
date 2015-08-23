@@ -39,6 +39,8 @@ public class ImageLoaderUtils {
     public static void showLargeImageView(ImageView aView, String aUrl) {
         Rect rect = new Rect();
         aView.getWindowVisibleDisplayFrame(rect);
+        aView.setMinimumHeight( rect.height() / 2 );
+        aView.setMinimumWidth( rect.width() / 2 );
         if (aUrl != null) {
             Picasso.with(aView.getContext()).load(aUrl).resize(rect.width() / 2, rect.height() / 2).
                     centerInside().into(aView);

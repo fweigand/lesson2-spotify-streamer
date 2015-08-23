@@ -16,7 +16,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Artist"
         android:id="@+id/player_artist_name"
         android:layout_gravity="center_horizontal" />
@@ -24,7 +23,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Album"
         android:id="@+id/player_album_name"
         android:layout_gravity="center_horizontal" />
@@ -33,12 +31,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/player_album_artwork"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:nestedScrollingEnabled="false"
+        android:adjustViewBounds="false"
+        android:minHeight="100px"
+        android:minWidth="100px" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Trackname"
         android:id="@+id/player_track_name"
         android:layout_gravity="center_horizontal" />
@@ -55,7 +56,7 @@
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -88,19 +89,19 @@
 
         <ImageButton
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:id="@+id/player_previous"
             android:src="@android:drawable/ic_media_previous" />
 
         <ImageButton
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:id="@+id/player_play"
             android:src="@android:drawable/ic_media_pause" />
 
         <ImageButton
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:id="@+id/player_next"
             android:src="@android:drawable/ic_media_next" />
     </LinearLayout>
