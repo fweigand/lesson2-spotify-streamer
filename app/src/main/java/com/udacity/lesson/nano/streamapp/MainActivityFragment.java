@@ -1,6 +1,9 @@
 package com.udacity.lesson.nano.streamapp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
@@ -111,13 +114,26 @@ public class MainActivityFragment extends Fragment implements SpotifyCallback<Sp
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 boolean handled = actionId == EditorInfo.IME_ACTION_SEARCH;
                 if (handled) {
-                    SpotifyRequester.getInstance().queryArtist(v.getText().toString(), MainActivityFragment.this);
                     Log.d(LOG_TAG, "handled: " + v.getText());
+                    if (isNetworkAvailable()) {
+                        SpotifyRequester.getInstance().queryArtist(v.getText().toString(), MainActivityFragment.this);
+                    } else {
+                        int duration = Toast.LENGTH_LONG;
+                        Toast toast = Toast.makeText(mSpotifyAdapter.getContext(), R.string.no_network_available, duration);
+                        toast.show();
+                    }
                 }
                 return handled;
             }
         });
         return rootView;
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     // convert the adapter elements to parcelable
